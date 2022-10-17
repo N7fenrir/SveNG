@@ -1,6 +1,7 @@
-import type {ICanvasBackground, ICanvasGrid, IMousePointer, IPanZoomHandler} from "../types";
 import {GRIDLIMIT, GRIDSCREENSIZE, SCALERATE, TOPLEFT} from "../static";
 import {panZoom} from "./panZoom";
+import {mouse} from "./mouse";
+import type {ICanvasBackground, ICanvasGrid } from "../types";
 
 
 class CanvasController {
@@ -8,75 +9,29 @@ class CanvasController {
 
     private readonly canvas: HTMLCanvasElement;
     private readonly canvasContext: CanvasRenderingContext2D;
-    private readonly mouse: IMousePointer;
     private readonly background: ICanvasBackground = undefined;
-    private panZoomHandler: IPanZoomHandler;
-    private  canvasWidth: number;
-    private  canvasHeight: number;
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
-        this.canvasWidth = canvas.width;
-        this.canvasHeight = canvas.height;
-        this.mouse = {x : 0, y : 0, wheel : 0, lastX : 0, lastY : 0, drag : false, button:false };
-        this.panZoomHandler = panZoom;
         this.background = background;
         this.canvasContext = canvas.getContext("2d");
 
         this.updateFrame = this.updateFrame.bind(this);
-        this.drawBackground = this.drawBackground.bind(this);
-
-        this.reRender();
+        requestAnimationFrame(this.updateFrame);
     }
 
-
-
-    public drawBackground(background: ICanvasBackground) {
-        if("grid" in background) {
-            this.drawGrid(background.grid);
+    public mouseDownEvent(e: MouseEvent) : void {
+        if(!mouse.button){
+            this.mouseEventBoundsCalc(e);
+            mouse.button = true
         }
     }
 
-    private drawGrid(grid: ICanvasGrid): void {
-        let scale, gridScale, size, x, y;
-        if (grid.adaptive) {
-            scale = 1 / this.panZoomHandler.scale;
-            gridScale = 2 ** (Math.log2(GRIDSCREENSIZE * scale) | 0);
-            size = Math.max(this.canvasWidth, this.canvasHeight) * scale + gridScale * 2;
-            x = ((-this.panZoomHandler.x * scale - gridScale) / gridScale | 0) * gridScale;
-            y = ((-this.panZoomHandler.y * scale - gridScale) / gridScale | 0) * gridScale;
-        } else {
-            gridScale = GRIDSCREENSIZE;
-            size = Math.max(this.canvasWidth, this.canvasHeight) / this.panZoomHandler.scale + gridScale * 2;
-            this.panZoomHandler.toWorld(0,0, TOPLEFT);
-            x = Math.floor(TOPLEFT.x / gridScale) * gridScale;
-            y = Math.floor(TOPLEFT.y / gridScale) * gridScale;
-            if (size / gridScale > GRIDLIMIT) {
-                size = gridScale * GRIDLIMIT;
-            }
-            this.panZoomHandler.apply(this.canvasContext);
-            this.canvasContext.lineWidth = 1;
-            this.canvasContext.strokeStyle = "#000";
-            this.canvasContext.beginPath();
-            for (let i = 0; i < size; i += gridScale) {
-                this.canvasContext.moveTo(x + i, y);
-                this.canvasContext.lineTo(x + i, y + size);
-                this.canvasContext.moveTo(x, y + i);
-                this.canvasContext.lineTo(x + size, y + i);
-            }
-            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
-            this.canvasContext.stroke();
+    public mouseUpEvent(e: MouseEvent) : void {
+        if(mouse.button) {
+            this.mouseEventBoundsCalc(e);
+            mouse.button = false;
         }
-    }
-
-    private mouseEventBoundsCalc(e: MouseEvent | WheelEvent): void {
-        const bounds = this.canvas.getBoundingClientRect();
-        this.mouse.x = e.pageX - bounds.left - scrollX;
-        this.mouse.y = e.pageY - bounds.top - scrollY;
-    }
-
-    public mouseButtonEvent(e: MouseEvent) : void {
-        this.mouse.button = e.type === "mousedown" ? true : e.type === "mouseup" ? false : this.mouse.button;
     }
 
     public mouseMoveEvent(e: MouseEvent) : void {
@@ -85,15 +40,55 @@ class CanvasController {
 
     public wheelEvent(e: WheelEvent): void {
         this.mouseEventBoundsCalc(e);
-        if(e.type === "wheel"){
-            this.mouse.wheel += -e.deltaY;
-            e.preventDefault();
+        mouse.wheel += -e.deltaY;
+    }
+
+    private mouseEventBoundsCalc(e: MouseEvent | WheelEvent): void {
+        let bounds = this.canvas.getBoundingClientRect();
+        mouse.x = e.clientX - bounds.left;
+        mouse.y = e.clientY - bounds.top;
+    }
+
+    private updateFrame(): void {
+        this.resetCanvasTransformAndAlpha()
+        this.canvasSafetyBounds();
+        this.perFrameCheckZoomPan();
+        this.perFrameDrawBackgroundAndPointer();
+        requestAnimationFrame(this.updateFrame);
+    }
+
+    private checkForZoom() {
+        if (mouse.wheel !== 0) {
+            let scale = mouse.wheel < 0 ? 1 / SCALERATE : SCALERATE;
+            mouse.wheel *= 0.8;
+            if(Math.abs(mouse.wheel) < 1){
+                mouse.wheel = 0;
+            }
+            panZoom.scaleAt(mouse.x, mouse.y, scale);
         }
     }
 
-    private drawPointer(x: number, y: number) : void {
-        const worldCoordinate = this.panZoomHandler.toWorld(x, y, {x:0, y:0});
-        this.panZoomHandler.apply(this.canvasContext);
+    private checkForPan() {
+        if (mouse.button) {
+            if (!mouse.drag) {
+                mouse.lastX = mouse.x;
+                mouse.lastY = mouse.y;
+                mouse.drag = true;
+            } else {
+                panZoom.x += mouse.x - mouse.lastX;
+                panZoom.y += mouse.y - mouse.lastY;
+                mouse.lastX = mouse.x;
+                mouse.lastY = mouse.y;
+            }
+        } else if (mouse.drag) {
+            mouse.drag = false;
+        }
+    }
+
+    private drawPointer() : void {
+        // @ts-ignore optional parameter p
+        const worldCoordinate = panZoom.toWorld(mouse.x, mouse.y);
+        panZoom.apply(this.canvasContext);
         this.canvasContext.lineWidth = 1;
         this.canvasContext.strokeStyle = "red";
         this.canvasContext.beginPath();
@@ -101,51 +96,71 @@ class CanvasController {
         this.canvasContext.lineTo(worldCoordinate.x + 10, worldCoordinate.y);
         this.canvasContext.moveTo(worldCoordinate.x, worldCoordinate.y - 10);
         this.canvasContext.lineTo(worldCoordinate.x, worldCoordinate.y + 10);
-        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0); //reset the transform so the lineWidth is 1
+        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
         this.canvasContext.stroke();
     }
 
-
-    public updateFrame(): void {
-        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0); // reset transform
-        this.canvasContext.globalAlpha = 1;           // reset alpha
-        if (this.canvasWidth !== innerWidth || this.canvasHeight !== innerHeight) {
-            this.canvasWidth = this.canvas.width = innerWidth;
-            this.canvasHeight =  this.canvas.height = innerHeight;
-        } else {
-            this.canvasContext.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-        }
-        if (this.mouse.wheel !== 0) {
-            let scale = this.mouse.wheel < 0 ? 1 / SCALERATE : SCALERATE;
-            this.mouse.wheel *= 0.8;
-            if(Math.abs(this.mouse.wheel) < 1){
-                this.mouse.wheel = 0;
-            }
-            panZoom.scaleAt(this.mouse.x, this.mouse.y, scale);
-        }
-        // TODO: Fix drag
-        if (this.mouse.button) {
-            if (!this.mouse.drag) {
-                this.mouse.lastX = this.mouse.x;
-                this.mouse.lastY = this.mouse.y;
-                this.mouse.drag = true;
-            } else {
-                panZoom.x += this.mouse.x - this.mouse.lastX;
-                panZoom.y += this.mouse.y - this.mouse.lastY;
-                this.mouse.lastX = this.mouse.x;
-                this.mouse.lastY = this.mouse.y;
-            }
-        } else if (this.mouse.drag) {
-            this.mouse.drag = false;
-        }
-        this.drawBackground(this.background);
-        this.drawPointer(this.mouse.x, this.mouse.y)
-        this.reRender();
+    private resetCanvasTransformAndAlpha(): void {
+        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+        this.canvasContext.globalAlpha = 1;
     }
 
+    private canvasSafetyBounds() : void {
+        if (this.canvas.width !== innerWidth || this.canvas.height !== innerHeight) {
+            this.canvas.width = this.canvas.width = innerWidth;
+            this.canvas.height =  this.canvas.height = innerHeight;
+        } else {
+            this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+    }
 
-    private reRender() {
-        requestAnimationFrame(this.updateFrame);
+    private perFrameCheckZoomPan(): void {
+        this.checkForZoom();
+        this.checkForPan();
+    }
+
+    private perFrameDrawBackgroundAndPointer(): void{
+        this.drawBackground();
+        this.drawPointer()
+    }
+
+    private drawBackground() {
+        if("grid" in this.background) {
+            this.drawGrid(this.background.grid);
+        }
+    }
+
+    private drawGrid(grid: ICanvasGrid): void {
+        let scale, gridScale, size, x, y;
+        if (grid.adaptive) {
+            scale = 1 / panZoom.scale;
+            gridScale = 2 ** (Math.log2(GRIDSCREENSIZE * scale) | 0);
+            size = Math.max(this.canvas.width, this.canvas.height) * scale + gridScale * 2;
+            x = ((-panZoom.x * scale - gridScale) / gridScale | 0) * gridScale;
+            y = ((-panZoom.y * scale - gridScale) / gridScale | 0) * gridScale;
+        }
+        else {
+            gridScale = GRIDSCREENSIZE;
+            size = Math.max(this.canvas.width, this.canvas.height) / panZoom.scale + gridScale * 2;
+            panZoom.toWorld(0,0, TOPLEFT);
+            x = Math.floor(TOPLEFT.x / gridScale) * gridScale;
+            y = Math.floor(TOPLEFT.y / gridScale) * gridScale;
+            if (size / gridScale > GRIDLIMIT) {
+                size = gridScale * GRIDLIMIT;
+            }
+        }
+        panZoom.apply(this.canvasContext);
+        this.canvasContext.lineWidth = 1;
+        this.canvasContext.strokeStyle = "#000";
+        this.canvasContext.beginPath();
+        for (let i = 0; i < size; i += gridScale) {
+            this.canvasContext.moveTo(x + i, y);
+            this.canvasContext.lineTo(x + i, y + size);
+            this.canvasContext.moveTo(x, y + i);
+            this.canvasContext.lineTo(x + size, y + i);
+        }
+        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
+        this.canvasContext.stroke();
     }
 
 }

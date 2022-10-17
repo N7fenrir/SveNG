@@ -2,19 +2,6 @@
     import CanvasController from "../controllers/canvas";
     import {onMount} from "svelte";
 
-    export let width;
-    export let height;
-    export let dotsBackground = {
-        dots : {
-            radius : 2,
-            cellWidth: 25,
-            cellHeight: 25,
-            xStart: 10,
-            yStart: 2,
-            fillStyle: "#000"
-        }
-    }
-
     export let gridBackground = {
         grid : {
             adaptive : false,
@@ -42,6 +29,10 @@
     // TODO: Delete Node
     // TODO: Select node
     // TODO: Update Node
+    // TODO: Optional pointer crosshair from css
+    // TODO: Pointer color change
+    // TODO: Background line color optional
+    // TODO: dots background
 
     onMount(() => {
         if(canvasContext !== null) {
@@ -49,17 +40,28 @@
         }
     })
 
-    // TODO: Fix drag
     function mouseMoveEvent(e: MouseEvent) {
-        console.log("moving", e)
+        canvasHelper.mouseMoveEvent(e)
     }
 
     function mouseWheelEvent(e: WheelEvent) {
+        e.preventDefault();
         canvasHelper.wheelEvent(e);
     }
 
-    function mouseButtonEvent(e: MouseEvent) {
-        canvasHelper.mouseButtonEvent(e);
+    function mouseDownEvent(e: MouseEvent) {
+        e.preventDefault();
+        canvasHelper.mouseDownEvent(e);
+    }
+
+    function mouseUpEvent(e: MouseEvent) {
+        canvasHelper.mouseUpEvent(e);
+    }
+
+    function deRegisterEvents() {
+    }
+
+    function registerEvents() {
     }
 
 </script>
@@ -67,10 +69,21 @@
 
 
 <canvas bind:this={canvasContext}
-        on:mousedown={mouseButtonEvent}
-        on:mouseUp={mouseButtonEvent}
+        on:mousedown={mouseDownEvent}
+        on:mouseup={mouseUpEvent}
         on:wheel={mouseWheelEvent}
-        style="width: {width}; height: {height} ; border: 1px solid black"
+        on:mousemove={mouseMoveEvent}
+        on:mouseleave={deRegisterEvents}
+        on:mouseenter={registerEvents}
 >
 
 </canvas>
+
+
+<style>
+    canvas {
+        position:absolute;
+        left:0;
+        top:0;
+    }
+</style>

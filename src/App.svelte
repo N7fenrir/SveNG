@@ -1,8 +1,8 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
 
-    export let width = "100%";
-    export let height = "100%";
+    export let width = "100vw";
+    export let height = "100vh";
 
 </script>
 
@@ -12,5 +12,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas {width} {height} />
+    <Canvas />
 </div>
