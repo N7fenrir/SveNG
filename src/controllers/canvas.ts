@@ -1,4 +1,4 @@
-import type {ICanvasBackground, IMousePointer, IPanZoomHandler} from "../types";
+import type {ICanvasBackground, ICanvasGrid, IMousePointer, IPanZoomHandler} from "../types";
 import {GRIDLIMIT, GRIDSCREENSIZE, SCALERATE, TOPLEFT} from "../static";
 import {panZoom} from "./panZoom";
 
@@ -33,12 +33,19 @@ class CanvasController {
 
     public drawBackground(background: ICanvasBackground) {
         if("grid" in background) {
-            this.drawGrid();
+            this.drawGrid(background.grid);
         }
     }
 
-    private drawGrid(): void {
-        let gridScale, size, x, y;
+    private drawGrid(grid: ICanvasGrid): void {
+        let scale, gridScale, size, x, y;
+        if (grid.adaptive) {
+            scale = 1 / this.panZoomHandler.scale;
+            gridScale = 2 ** (Math.log2(GRIDSCREENSIZE * scale) | 0);
+            size = Math.max(this.canvasWidth, this.canvasHeight) * scale + gridScale * 2;
+            x = ((-this.panZoomHandler.x * scale - gridScale) / gridScale | 0) * gridScale;
+            y = ((-this.panZoomHandler.y * scale - gridScale) / gridScale | 0) * gridScale;
+        } else {
             gridScale = GRIDSCREENSIZE;
             size = Math.max(this.canvasWidth, this.canvasHeight) / this.panZoomHandler.scale + gridScale * 2;
             this.panZoomHandler.toWorld(0,0, TOPLEFT);
@@ -56,6 +63,7 @@ class CanvasController {
                 this.canvasContext.lineTo(x + i, y + size);
                 this.canvasContext.moveTo(x, y + i);
                 this.canvasContext.lineTo(x + size, y + i);
+            }
             this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
             this.canvasContext.stroke();
         }
