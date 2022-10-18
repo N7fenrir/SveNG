@@ -6,18 +6,18 @@ A Svelte Node Graph with CRUD options
 - [x] TODO: Add Zoom
 - [x] TODO: Pan Canvas
 - [x] TODO: dots background
-- [] TODO: solid background color
+- [x] TODO: solid background color
+- [x] TODO: solid background color with dotted or lined grid
+- [x] TODO: Background line color optional
+
 
 - [] TODO: Nodes
 - [] TODO: Edges
 - [] ODO: Node Styles
 - [] TODO: Edge Styles
 - [] TODO: Configurable Buttons
-- [] TODO: Background (add infinite animation, solid Colors)
 - [] TODO: Add Node
 - [] TODO: Delete Node
 - [] TODO: Select node
 - [] TODO: Update Node
-- [] TODO: Optional pointer crosshair from css
 - [] TODO: Pointer color change
-- [] TODO: Background line color optional
