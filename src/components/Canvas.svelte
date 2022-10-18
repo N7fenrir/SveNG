@@ -5,9 +5,9 @@
     export let gridBackground = {
         grid : {
             adaptive : false,
-            gridLimit : 32,
-            gridSize: 128,
-            gridScreenSize: 128,
+            gridLimit : 32,  // max grid lines for static grid
+            gridSize: 128,  // grid size in screen pixels for adaptive and world pixels for static
+            gridScreenSize: 128,  // U get it
             strokeColor: "#ff009c",
         }
     }
@@ -20,6 +20,7 @@
             fillStyle: "#000000" // dots color size
         }
     }
+
 
     let canvasContext = null;
     let canvasHelper;
