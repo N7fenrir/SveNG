@@ -1,21 +1,20 @@
 import {GRIDLIMIT, GRIDSCREENSIZE, SCALERATE, TOPLEFT} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type {ICanvasBackground, ICanvasGrid } from "../types";
+import type {ICanvasBackground, ICanvasDots, ICanvasGrid} from "../types";
 
 
 class CanvasController {
 
 
     private readonly canvas: HTMLCanvasElement;
-    private readonly canvasContext: CanvasRenderingContext2D;
+    private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
-        this.canvasContext = canvas.getContext("2d");
-
+        this.ctx = canvas.getContext("2d");
         this.updateFrame = this.updateFrame.bind(this);
         requestAnimationFrame(this.updateFrame);
     }
@@ -88,21 +87,21 @@ class CanvasController {
     private drawPointer() : void {
         // @ts-ignore optional parameter p
         const worldCoordinate = panZoom.toWorld(mouse.x, mouse.y);
-        panZoom.apply(this.canvasContext);
-        this.canvasContext.lineWidth = 1;
-        this.canvasContext.strokeStyle = "red";
-        this.canvasContext.beginPath();
-        this.canvasContext.moveTo(worldCoordinate.x - 10, worldCoordinate.y);
-        this.canvasContext.lineTo(worldCoordinate.x + 10, worldCoordinate.y);
-        this.canvasContext.moveTo(worldCoordinate.x, worldCoordinate.y - 10);
-        this.canvasContext.lineTo(worldCoordinate.x, worldCoordinate.y + 10);
-        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
-        this.canvasContext.stroke();
+        panZoom.apply(this.ctx);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = "red";
+        this.ctx.beginPath();
+        this.ctx.moveTo(worldCoordinate.x - 10, worldCoordinate.y);
+        this.ctx.lineTo(worldCoordinate.x + 10, worldCoordinate.y);
+        this.ctx.moveTo(worldCoordinate.x, worldCoordinate.y - 10);
+        this.ctx.lineTo(worldCoordinate.x, worldCoordinate.y + 10);
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.stroke();
     }
 
     private resetCanvasTransformAndAlpha(): void {
-        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
-        this.canvasContext.globalAlpha = 1;
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.globalAlpha = 1;
     }
 
     private canvasSafetyBounds() : void {
@@ -110,7 +109,7 @@ class CanvasController {
             this.canvas.width = this.canvas.width = innerWidth;
             this.canvas.height =  this.canvas.height = innerHeight;
         } else {
-            this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
     }
 
@@ -127,6 +126,9 @@ class CanvasController {
     private drawBackground() {
         if("grid" in this.background) {
             this.drawGrid(this.background.grid);
+        }
+        if("dots" in this.background) {
+            this.drawDots(this.background.dots)
         }
     }
 
@@ -149,18 +151,40 @@ class CanvasController {
                 size = gridScale * GRIDLIMIT;
             }
         }
-        panZoom.apply(this.canvasContext);
-        this.canvasContext.lineWidth = 1;
-        this.canvasContext.strokeStyle = "#000";
-        this.canvasContext.beginPath();
+        panZoom.apply(this.ctx);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = "#000";
+        this.ctx.beginPath();
         for (let i = 0; i < size; i += gridScale) {
-            this.canvasContext.moveTo(x + i, y);
-            this.canvasContext.lineTo(x + i, y + size);
-            this.canvasContext.moveTo(x, y + i);
-            this.canvasContext.lineTo(x + size, y + i);
+            this.ctx.moveTo(x + i, y);
+            this.ctx.lineTo(x + i, y + size);
+            this.ctx.moveTo(x, y + i);
+            this.ctx.lineTo(x + size, y + i);
         }
-        this.canvasContext.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
-        this.canvasContext.stroke();
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0); // reset the transform so the lineWidth is 1
+        this.ctx.stroke();
+    }
+
+    private drawDots(dots: ICanvasDots): void {
+        const lw = dots.lineWidth * panZoom.scale;
+        const gap = dots.gap * panZoom.scale;
+
+        const offsetX = (panZoom.x % gap) - lw;
+        const offsetY = (panZoom.y % gap) - lw;
+
+        this.ctx.lineWidth = lw;
+        this.ctx.strokeStyle = dots.fillStyle;
+
+        this.ctx.beginPath();
+        for (let i = offsetX; i < this.canvas.width + lw; i += gap) {
+            this.ctx.moveTo(i, offsetY);
+            this.ctx.lineTo(i, this.canvas.height + lw);
+        }
+        this.ctx.lineCap = "round";
+        this.ctx.setLineDash([0, gap]);
+        this.ctx.stroke();
+        this.ctx.setLineDash([0]);
+        this.ctx.lineCap =  "round";
     }
 
 }

@@ -11,32 +11,22 @@
         }
     }
 
+
+    export let dotsBackground = {
+        dots : {
+            lineWidth : 4, // dot size
+            gap: 64, // controls density
+            fillStyle: "#000000"
+        }
+    }
+
     let canvasContext = null;
     let canvasHelper;
 
 
-    // TODO: Infinite Canvas
-    // TODO: Background (default: dotted Grid)
-    // TODO: Add Zoom
-    // TODO: Pan Canvas
-    // TODO: Nodes
-    // TODO: Edges
-    // TODO: Node Styles
-    // TODO: Edge Styles
-    // TODO: Configurable Buttons
-    // TODO: Background (add infinite animation, solid Colors)
-    // TODO: Add Node
-    // TODO: Delete Node
-    // TODO: Select node
-    // TODO: Update Node
-    // TODO: Optional pointer crosshair from css
-    // TODO: Pointer color change
-    // TODO: Background line color optional
-    // TODO: dots background
-
     onMount(() => {
         if(canvasContext !== null) {
-            canvasHelper = new CanvasController(canvasContext, gridBackground);
+            canvasHelper = new CanvasController(canvasContext, dotsBackground);
         }
     })
 

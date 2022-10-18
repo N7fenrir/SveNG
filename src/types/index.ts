@@ -11,11 +11,8 @@ interface ICanvasGrid {
 }
 
 interface ICanvasDots {
-    radius : number,
-    cellWidth: number,
-    cellHeight: number,
-    xStart : number,
-    yStart: number,
+    lineWidth : number,
+    gap: number,
     fillStyle: string
 }
 
