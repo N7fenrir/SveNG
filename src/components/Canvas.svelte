@@ -5,9 +5,10 @@
     export let gridBackground = {
         grid : {
             adaptive : false,
-            gridLimit : 64,
+            gridLimit : 32,
             gridSize: 128,
             gridScreenSize: 128,
+            strokeColor: "#ff009c",
         }
     }
 
@@ -16,7 +17,7 @@
         dots : {
             lineWidth : 4, // dot size
             gap: 64, // controls density
-            fillStyle: "#000000"
+            fillStyle: "#000000" // dots color size
         }
     }
 

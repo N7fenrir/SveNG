@@ -1,7 +1,8 @@
-import {GRIDLIMIT, GRIDSCREENSIZE, SCALERATE, TOPLEFT} from "../static";
+import {TOP_LEFT, SCALE_RATE, GRID_STROKE_COLOR} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type {ICanvasBackground, ICanvasDots, ICanvasGrid} from "../types";
+import type { ICanvasBackground } from "../types";
+
 
 
 class CanvasController {
@@ -10,12 +11,14 @@ class CanvasController {
     private readonly canvas: HTMLCanvasElement;
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
+    private readonly drawBackground: () => void;
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
         this.updateFrame = this.updateFrame.bind(this);
+        this.drawBackground = this.setupBackgroundFunc();
         requestAnimationFrame(this.updateFrame);
     }
 
@@ -58,7 +61,7 @@ class CanvasController {
 
     private checkForZoom() {
         if (mouse.wheel !== 0) {
-            let scale = mouse.wheel < 0 ? 1 / SCALERATE : SCALERATE;
+            let scale = mouse.wheel < 0 ? 1 / SCALE_RATE : SCALE_RATE;
             mouse.wheel *= 0.8;
             if(Math.abs(mouse.wheel) < 1){
                 mouse.wheel = 0;
@@ -123,38 +126,55 @@ class CanvasController {
         this.drawPointer()
     }
 
-    private drawBackground() {
-        if("grid" in this.background) {
-            this.drawGrid(this.background.grid);
+    private setupBackgroundFunc(): () => void {
+        if("solid" in this.background) {
+            this.drawSolidBackgroundColor(this.background.solid);
+            return () => {}
         }
         if("dots" in this.background) {
-            this.drawDots(this.background.dots)
+            return this.drawDots;
+        }
+        if("grid" in this.background) {
+            this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : GRID_STROKE_COLOR
+            return this.background.grid.adaptive? this.adaptiveGrid : this.nonAdaptiveGrid
         }
     }
 
-    private drawGrid(grid: ICanvasGrid): void {
+
+    private drawSolidBackgroundColor(color: string) {
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+
+    private adaptiveGrid(): void {
         let scale, gridScale, size, x, y;
-        if (grid.adaptive) {
-            scale = 1 / panZoom.scale;
-            gridScale = 2 ** (Math.log2(GRIDSCREENSIZE * scale) | 0);
-            size = Math.max(this.canvas.width, this.canvas.height) * scale + gridScale * 2;
-            x = ((-panZoom.x * scale - gridScale) / gridScale | 0) * gridScale;
-            y = ((-panZoom.y * scale - gridScale) / gridScale | 0) * gridScale;
+        scale = 1 / panZoom.scale;
+        gridScale = 2 ** (Math.log2(this.background.grid.gridScreenSize * scale) | 0);
+        size = Math.max(this.canvas.width, this.canvas.height) * scale + gridScale * 2;
+        x = ((-panZoom.x * scale - gridScale) / gridScale | 0) * gridScale;
+        y = ((-panZoom.y * scale - gridScale) / gridScale | 0) * gridScale;
+        this.drawLineForGridBackground(x,y,size, gridScale)
+    }
+
+    private nonAdaptiveGrid(): void {
+        let gridScale, size, x, y;
+        gridScale = this.background.grid.gridScreenSize;
+        size = Math.max(this.canvas.width, this.canvas.height) / panZoom.scale + gridScale * 2;
+        panZoom.toWorld(0,0, TOP_LEFT);
+        x = Math.floor(TOP_LEFT.x / gridScale) * gridScale;
+        y = Math.floor(TOP_LEFT.y / gridScale) * gridScale;
+        if (size / gridScale > this.background.grid.gridLimit) {
+            size = gridScale * this.background.grid.gridLimit;
         }
-        else {
-            gridScale = GRIDSCREENSIZE;
-            size = Math.max(this.canvas.width, this.canvas.height) / panZoom.scale + gridScale * 2;
-            panZoom.toWorld(0,0, TOPLEFT);
-            x = Math.floor(TOPLEFT.x / gridScale) * gridScale;
-            y = Math.floor(TOPLEFT.y / gridScale) * gridScale;
-            if (size / gridScale > GRIDLIMIT) {
-                size = gridScale * GRIDLIMIT;
-            }
-        }
+        this.drawLineForGridBackground(x,y,size, gridScale)
+    }
+
+    private drawLineForGridBackground(x: number,y: number,size: number, gridScale: number) : void {
         panZoom.apply(this.ctx);
         this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "#000";
         this.ctx.beginPath();
+        this.ctx.strokeStyle = this.background.grid.strokeColor;
         for (let i = 0; i < size; i += gridScale) {
             this.ctx.moveTo(x + i, y);
             this.ctx.lineTo(x + i, y + size);
@@ -165,15 +185,15 @@ class CanvasController {
         this.ctx.stroke();
     }
 
-    private drawDots(dots: ICanvasDots): void {
-        const lw = dots.lineWidth * panZoom.scale;
-        const gap = dots.gap * panZoom.scale;
+    private drawDots(): void {
+        const lw = this.background.dots.lineWidth * panZoom.scale;
+        const gap = this.background.dots.gap * panZoom.scale;
 
         const offsetX = (panZoom.x % gap) - lw;
         const offsetY = (panZoom.y % gap) - lw;
 
         this.ctx.lineWidth = lw;
-        this.ctx.strokeStyle = dots.fillStyle;
+        this.ctx.strokeStyle = this.background.dots.fillStyle;
 
         this.ctx.beginPath();
         for (let i = offsetX; i < this.canvas.width + lw; i += gap) {

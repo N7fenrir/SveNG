@@ -1,13 +1,15 @@
 interface ICanvasBackground {
     grid? : ICanvasGrid,
     dots? : ICanvasDots,
+    solid? : string
 }
 
 interface ICanvasGrid {
     gridLimit : number,
     gridSize: number,
     gridScreenSize: number,
-    adaptive: boolean
+    adaptive: boolean;
+    strokeColor?: string;
 }
 
 interface ICanvasDots {
