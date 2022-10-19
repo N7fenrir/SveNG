@@ -170,11 +170,12 @@ class CanvasController {
 
     private perFrameRender() {
         this.renderBackgroundAndPointer();
+        this.ctx.translate(panZoom.x, panZoom.y);
         this.renderNodes();
     }
 
     private resetCanvasTransformAndAlpha(): void {
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0 );
         this.ctx.globalAlpha = 1;
     }
 
@@ -194,14 +195,18 @@ class CanvasController {
 
     private renderBackgroundAndPointer(): void{
         this.drawBackground();
-        this.drawPointer()
+        // this.drawPointer()
     }
 
     private renderNodes() : void {
         this.drawAllNodes()
     }
 
-    private drawPointer() : void {
+    /**
+     * Deprecated : Draw a crosshair. Done with css
+     * @private
+     */
+    private _drawPointer() : void {
         // @ts-ignore optional parameter p
         const worldCoordinate = panZoom.toWorld(mouse.x, mouse.y);
         panZoom.apply(this.ctx);
@@ -267,6 +272,7 @@ class CanvasController {
         this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
         this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
+
         this.ctx.beginPath();
 
         if(SHAPES.POLYGON in node.shape) {
@@ -285,13 +291,20 @@ class CanvasController {
     }
 
     private renderQuad(node: INode): void {
-        const pos = panZoom.toWorld(node.x, node.y, { x: panZoom.x, y: panZoom.y});
-        this.ctx.rect(node.x - pos.x, node.y - pos.y, node.shape[SHAPES.POLYGON].width, node.shape[SHAPES.POLYGON].height);
+        this.ctx.rect(
+            node.x * panZoom.scale,
+            node.y * panZoom.scale,
+            node.shape[SHAPES.POLYGON].width  * panZoom.scale,
+            node.shape[SHAPES.POLYGON].height  * panZoom.scale);
     }
 
     private renderArc(node: INode): void {
-        const pos = panZoom.toWorld(node.x, node.y, { x: panZoom.x, y: panZoom.y});
-        this.ctx.arc(node.x - pos.x, node.y - pos.y, node.shape[SHAPES.CIRCLE].radius, 0, 2 * Math.PI, false);
+        this.ctx.arc(
+            node.x * panZoom.scale,
+            node.y * panZoom.scale,
+            node.shape[SHAPES.CIRCLE].radius * panZoom.scale,
+            0,
+            2 * Math.PI);
     }
 
     private checkIfNodeOutOfBounds(node: INode) : boolean {

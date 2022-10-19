@@ -56,16 +56,16 @@
         },
         {
             id: 3,
-            x: 20000,
+            x: 200,
             y: 100,
             shape: {
                 quad : {
-                    width: 15,
-                    height: 30
+                    width: 100,
+                    height: 50
                 },
             },
             style: {
-                fillColor: "#00cc99",
+                fillColor: "pink",
             },
             content: "ASD"
         },
