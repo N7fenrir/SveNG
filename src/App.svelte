@@ -26,8 +26,8 @@
     export let nodes: INode[] = [
         {
             id: 1,
-            posX: 100,
-            posY: 100,
+            x: 100,
+            y: 100,
             shape: {
                 circle : {
                     radius: 25,
@@ -41,12 +41,12 @@
 
         {
             id: 2,
-            posX: 200,
-            posY: 100,
+            x: 200,
+            y: 100,
             shape: {
                 quad : {
-                    width: 15,
-                    height: 30
+                    width: 75,
+                    height: 35
                 },
             },
             style: {
@@ -56,8 +56,8 @@
         },
         {
             id: 3,
-            posX: 20000,
-            posY: 100,
+            x: 20000,
+            y: 100,
             shape: {
                 quad : {
                     width: 15,

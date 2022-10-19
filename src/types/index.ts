@@ -57,10 +57,15 @@ enum SHAPES {
     CIRCLE = "circle"
 }
 
+interface IInteractedNodes {
+    selected: INode;
+    hovered: INode;
+}
+
 interface INode {
     id: number | string;
-    posX: number;
-    posY:number;
+    x: number;
+    y:number;
     shape: {
         [SHAPES.POLYGON]? : IPolygon,
         [SHAPES.CIRCLE]? : ICircle,
@@ -78,5 +83,5 @@ interface INode {
     }
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes}
 export {SHAPES}

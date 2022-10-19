@@ -1,7 +1,7 @@
 import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_WHITE} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type {INode, ICanvasBackground, IPolygon, ICircle} from "../types";
+import type {INode, ICanvasBackground, IPolygon, ICircle, IInteractedNodes} from "../types";
 import {SHAPES} from "../types";
 
 
@@ -13,12 +13,17 @@ class CanvasController {
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
+    private current: IInteractedNodes;
     private nodes: INode[];
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
+        this.current = {
+            hovered : undefined,
+            selected: undefined,
+        };
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
     }
@@ -58,11 +63,8 @@ class CanvasController {
     private drawAllNodes(): void {
         this.nodes.forEach((node: INode ) => {
             const out = this.checkIfNodeOutOfBounds(node);
-            if(!out && SHAPES.POLYGON in node.shape) {
-                this.renderPolygon(node);
-            }
-            if(!out && SHAPES.CIRCLE in node.shape) {
-                this.renderArc(node);
+            if(!out){
+                this.drawNode(node)
             }
         });
     }
@@ -261,36 +263,44 @@ class CanvasController {
 
     /* ------------------------------- Nodes Related ------------------------------- */
 
-
-    private renderPolygon(node: INode): void {
+    private drawNode(node: INode) : void {
         this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
         this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
-
         this.ctx.beginPath();
-        this.ctx.rect(node.posX, node.posY, node.shape[SHAPES.POLYGON].width, node.shape[SHAPES.POLYGON].height);
-        this.ctx.closePath();
+
+        if(SHAPES.POLYGON in node.shape) {
+            this.renderQuad(node);
+        }
+        if(SHAPES.CIRCLE in node.shape) {
+            this.renderArc(node);
+        }
+
+        if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
+            this.current.hovered = node;
+        }
+
         this.ctx.fill();
         this.ctx.stroke();
     }
 
+    private renderQuad(node: INode): void {
+        const pos = panZoom.toWorld(node.x, node.y, { x: panZoom.x, y: panZoom.y});
+        this.ctx.rect(node.x - pos.x, node.y - pos.y, node.shape[SHAPES.POLYGON].width, node.shape[SHAPES.POLYGON].height);
+    }
+
     private renderArc(node: INode): void {
-        this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
-        this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
-        this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
-        this.ctx.beginPath();
-        this.ctx.arc(node.posX, node.posY, node.shape[SHAPES.CIRCLE].radius, 0, 2 * Math.PI, false);
-        this.ctx.fill();
-        this.ctx.stroke();
+        const pos = panZoom.toWorld(node.x, node.y, { x: panZoom.x, y: panZoom.y});
+        this.ctx.arc(node.x - pos.x, node.y - pos.y, node.shape[SHAPES.CIRCLE].radius, 0, 2 * Math.PI, false);
     }
 
     private checkIfNodeOutOfBounds(node: INode) : boolean {
         const shape = this.getShapeBound(node.shape);
         return (
-            (node.posX + shape) * panZoom.scale + panZoom.x < 0 ||
-            (node.posY + shape) * panZoom.scale + panZoom.y < 0 ||
-            (node.posX - shape) * panZoom.scale + panZoom.x > this.canvas.width ||
-            (node.posY - shape) * panZoom.scale + panZoom.y > this.canvas.height
+            (node.x + shape) * panZoom.scale + panZoom.x < 0 ||
+            (node.y + shape) * panZoom.scale + panZoom.y < 0 ||
+            (node.x - shape) * panZoom.scale + panZoom.x > this.canvas.width ||
+            (node.y - shape) * panZoom.scale + panZoom.y > this.canvas.height
         );
     }
 
