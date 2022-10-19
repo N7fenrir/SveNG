@@ -1,7 +1,7 @@
 import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_WHITE} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type {INode, ICanvasBackground } from "../types";
+import type {INode, ICanvasBackground, IPolygon, ICircle} from "../types";
 import {SHAPES} from "../types";
 
 
@@ -57,10 +57,11 @@ class CanvasController {
 
     private drawAllNodes(): void {
         this.nodes.forEach((node: INode ) => {
-            if(SHAPES.POLYGON in node.shape) {
+            const out = this.checkIfNodeOutOfBounds(node);
+            if(!out && SHAPES.POLYGON in node.shape) {
                 this.renderPolygon(node);
             }
-            if(SHAPES.CIRCLE in node.shape) {
+            if(!out && SHAPES.CIRCLE in node.shape) {
                 this.renderArc(node);
             }
         });
@@ -264,12 +265,10 @@ class CanvasController {
     private renderPolygon(node: INode): void {
         this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
-        this.ctx.beginPath();
         this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
-        this.ctx.moveTo(node.posX + node.shape[SHAPES.POLYGON].size * Math.cos(0), node.posY + node.shape[SHAPES.POLYGON].size * Math.sin(0));
-        for (let i = 1; i <= node.shape[SHAPES.POLYGON].sides + 1; i++){
-            this.ctx.lineTo(node.posX + node.shape[SHAPES.POLYGON].size * Math.cos(i * 2 * Math.PI / node.shape[SHAPES.POLYGON].sides), node.posY + node.shape[SHAPES.POLYGON].size * Math.sin(i * 2 * Math.PI / node.shape[SHAPES.POLYGON].sides));
-        }
+
+        this.ctx.beginPath();
+        this.ctx.rect(node.posX, node.posY, node.shape[SHAPES.POLYGON].width, node.shape[SHAPES.POLYGON].height);
         this.ctx.closePath();
         this.ctx.fill();
         this.ctx.stroke();
@@ -284,6 +283,22 @@ class CanvasController {
         this.ctx.fill();
         this.ctx.stroke();
     }
+
+    private checkIfNodeOutOfBounds(node: INode) : boolean {
+        const shape = this.getShapeBound(node.shape);
+        return (
+            (node.posX + shape) * panZoom.scale + panZoom.x < 0 ||
+            (node.posY + shape) * panZoom.scale + panZoom.y < 0 ||
+            (node.posX - shape) * panZoom.scale + panZoom.x > this.canvas.width ||
+            (node.posY - shape) * panZoom.scale + panZoom.y > this.canvas.height
+        );
+    }
+
+    private getShapeBound(shape: { polygon?: IPolygon; circle?: ICircle; }): number {
+        return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
+    }
+
+
 
     /* *******************************  Nodes Related ******************************* */
 

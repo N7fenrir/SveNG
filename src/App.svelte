@@ -44,9 +44,24 @@
             posX: 200,
             posY: 100,
             shape: {
-                polygon : {
-                    size: 25,
-                    sides: 3
+                quad : {
+                    width: 15,
+                    height: 30
+                },
+            },
+            style: {
+                fillColor: "#00cc99",
+            },
+            content: "ASD"
+        },
+        {
+            id: 3,
+            posX: 20000,
+            posY: 100,
+            shape: {
+                quad : {
+                    width: 15,
+                    height: 30
                 },
             },
             style: {

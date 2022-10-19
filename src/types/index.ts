@@ -44,8 +44,8 @@ interface IPanZoomHandler {
 
 
 interface IPolygon {
-    sides: number;
-    size: number,
+    width: number;
+    height: number,
 }
 
 interface ICircle {
@@ -53,7 +53,7 @@ interface ICircle {
 }
 
 enum SHAPES {
-    POLYGON = "polygon",
+    POLYGON = "quad",
     CIRCLE = "circle"
 }
 
@@ -78,5 +78,5 @@ interface INode {
     }
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle}
 export {SHAPES}
