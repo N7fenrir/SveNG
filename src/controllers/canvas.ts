@@ -1,7 +1,8 @@
-import {TOP_LEFT, SCALE_RATE, GRID_STROKE_COLOR, DEFAULT_SOLID} from "../static";
+import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_WHITE} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type { ICanvasBackground } from "../types";
+import type {INode, ICanvasBackground } from "../types";
+import {SHAPES} from "../types";
 
 
 
@@ -12,6 +13,7 @@ class CanvasController {
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
+    private nodes: INode[];
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
@@ -19,7 +21,6 @@ class CanvasController {
         this.ctx = canvas.getContext("2d");
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
-        requestAnimationFrame(this.updateFrame);
     }
 
     public mouseDownEvent(e: MouseEvent) : void {
@@ -45,6 +46,26 @@ class CanvasController {
         mouse.wheel += -e.deltaY;
     }
 
+    public requestRedraw() : void {
+        requestAnimationFrame(this.updateFrame);
+    }
+
+    public setupInitialNodes(nodes: INode[]) : void {
+        console.log(nodes);
+        this.nodes = nodes;
+    };
+
+    private drawAllNodes(): void {
+        this.nodes.forEach((node: INode ) => {
+            if(SHAPES.POLYGON in node.shape) {
+                this.renderPolygon(node);
+            }
+            if(SHAPES.CIRCLE in node.shape) {
+                this.renderArc(node);
+            }
+        });
+    }
+
 
     /* ------------------------------- Background Related ------------------------------- */
 
@@ -53,7 +74,7 @@ class CanvasController {
             return this.drawDots
         }
         if("grid" in this.background) {
-            this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : GRID_STROKE_COLOR
+            this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : DEFAULT_BLACK
             return this.background.grid.adaptive? this.adaptiveGrid : this.nonAdaptiveGrid
         }
         if("solid" in this.background) {
@@ -140,8 +161,13 @@ class CanvasController {
         this.resetCanvasTransformAndAlpha()
         this.canvasSafetyBounds();
         this.perFrameCheckZoomPan();
-        this.perFrameDrawBackgroundAndPointer();
+        this.perFrameRender();
         requestAnimationFrame(this.updateFrame);
+    }
+
+    private perFrameRender() {
+        this.renderBackgroundAndPointer();
+        this.renderNodes();
     }
 
     private resetCanvasTransformAndAlpha(): void {
@@ -163,9 +189,13 @@ class CanvasController {
         this.checkForPan();
     }
 
-    private perFrameDrawBackgroundAndPointer(): void{
+    private renderBackgroundAndPointer(): void{
         this.drawBackground();
         this.drawPointer()
+    }
+
+    private renderNodes() : void {
+        this.drawAllNodes()
     }
 
     private drawPointer() : void {
@@ -225,6 +255,39 @@ class CanvasController {
 
 
     /* *******************************  Mouse Events ******************************* */
+
+
+
+    /* ------------------------------- Nodes Related ------------------------------- */
+
+
+    private renderPolygon(node: INode): void {
+        this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
+        this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
+        this.ctx.beginPath();
+        this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
+        this.ctx.moveTo(node.posX + node.shape[SHAPES.POLYGON].size * Math.cos(0), node.posY + node.shape[SHAPES.POLYGON].size * Math.sin(0));
+        for (let i = 1; i <= node.shape[SHAPES.POLYGON].sides + 1; i++){
+            this.ctx.lineTo(node.posX + node.shape[SHAPES.POLYGON].size * Math.cos(i * 2 * Math.PI / node.shape[SHAPES.POLYGON].sides), node.posY + node.shape[SHAPES.POLYGON].size * Math.sin(i * 2 * Math.PI / node.shape[SHAPES.POLYGON].sides));
+        }
+        this.ctx.closePath();
+        this.ctx.fill();
+        this.ctx.stroke();
+    }
+
+    private renderArc(node: INode): void {
+        this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
+        this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
+        this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
+        this.ctx.beginPath();
+        this.ctx.arc(node.posX, node.posY, node.shape[SHAPES.CIRCLE].radius, 0, 2 * Math.PI, false);
+        this.ctx.fill();
+        this.ctx.stroke();
+    }
+
+    /* *******************************  Nodes Related ******************************* */
+
+
 
 
 

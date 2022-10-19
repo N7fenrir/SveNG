@@ -42,4 +42,41 @@ interface IPanZoomHandler {
     toWorld: (x: number, y: number, point: IPoint) => IPoint
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler}
+
+interface IPolygon {
+    sides: number;
+    size: number,
+}
+
+interface ICircle {
+    radius: number,
+}
+
+enum SHAPES {
+    POLYGON = "polygon",
+    CIRCLE = "circle"
+}
+
+interface INode {
+    id: number | string;
+    posX: number;
+    posY:number;
+    shape: {
+        [SHAPES.POLYGON]? : IPolygon,
+        [SHAPES.CIRCLE]? : ICircle,
+    };
+    style?: {
+        borderThickness?: number;
+        borderColor?: string;
+        fillColor?: string;
+    }
+    content: string
+    image?: {
+        src: string;
+        altText: string;
+        resizeToFit: boolean
+    }
+}
+
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode}
+export {SHAPES}

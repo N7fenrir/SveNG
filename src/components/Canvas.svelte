@@ -1,9 +1,11 @@
 <script lang="ts">
     import CanvasController from "../controllers/canvas";
     import {onMount} from "svelte";
+    import type {INode} from "../types";
 
 
     export let background;
+    export let nodes: INode[];
 
     let canvasContext = null;
     let canvasHelper;
@@ -12,6 +14,8 @@
     onMount(() => {
         if(canvasContext !== null) {
             canvasHelper = new CanvasController(canvasContext, background);
+            canvasHelper.setupInitialNodes(nodes);
+            canvasHelper.requestRedraw();
         }
     })
 

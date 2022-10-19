@@ -1,5 +1,6 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
+    import type {INode} from "./types";
 
     export let width = "100vw";
     export let height = "100vh";
@@ -22,6 +23,39 @@
         }
     }
 
+    export let nodes: INode[] = [
+        {
+            id: 1,
+            posX: 100,
+            posY: 100,
+            shape: {
+                circle : {
+                    radius: 25,
+                },
+            },
+            style: {
+                fillColor: "#00cc99",
+            },
+            content: "ASD"
+            },
+
+        {
+            id: 2,
+            posX: 200,
+            posY: 100,
+            shape: {
+                polygon : {
+                    size: 25,
+                    sides: 3
+                },
+            },
+            style: {
+                fillColor: "#00cc99",
+            },
+            content: "ASD"
+        },
+    ]
+
 
 </script>
 
@@ -31,5 +65,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas  background={dotsBackground} />
+    <Canvas nodes={nodes}  background={dotsBackground} />
 </div>
