@@ -57,6 +57,13 @@ enum SHAPES {
     CIRCLE = "circle"
 }
 
+enum POINTERS {
+    GRAB = "grab",
+    POINTER = "pointer",
+    CROSS = "crosshair",
+    DEFAULT = "default",
+}
+
 interface IInteractedNodes {
     selected: INode;
     hovered: INode;
@@ -84,4 +91,4 @@ interface INode {
 }
 
 export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes}
-export {SHAPES}
+export {SHAPES, POINTERS}

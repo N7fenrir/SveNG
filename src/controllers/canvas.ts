@@ -2,7 +2,7 @@ import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, 
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
 import type {INode, ICanvasBackground, IPolygon, ICircle, IInteractedNodes} from "../types";
-import {SHAPES} from "../types";
+import {POINTERS, SHAPES} from "../types";
 
 
 
@@ -73,6 +73,9 @@ class CanvasController {
     /* ------------------------------- Background Related ------------------------------- */
 
     private setupBackgroundFunc(): () => void {
+        if("solid" in this.background) {
+            this.canvas.style.backgroundColor = this.background? this.background.solid : DEFAULT_SOLID ;
+        }
         if("dots" in this.background) {
             return this.drawDots
         }
@@ -80,18 +83,10 @@ class CanvasController {
             this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : DEFAULT_BLACK
             return this.background.grid.adaptive? this.adaptiveGrid : this.nonAdaptiveGrid
         }
-        if("solid" in this.background) {
-            return this.drawSolidBackgroundColor
-        }
     }
 
-    private drawSolidBackgroundColor() {
-        this.ctx.fillStyle = this.background.solid? this.background.solid : DEFAULT_SOLID;
-        this.ctx.fillRect(TOP_LEFT.x, TOP_LEFT.y, this.canvas.width, this.canvas.height);
-    }
 
     private adaptiveGrid(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         let scale, gridScale, size, x, y;
         scale = 1 / panZoom.scale;
         gridScale = 2 ** (Math.log2(this.background.grid.gridScreenSize * scale) | 0);
@@ -102,7 +97,6 @@ class CanvasController {
     }
 
     private nonAdaptiveGrid(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         let gridScale, size, x, y;
         gridScale = this.background.grid.gridScreenSize;
         size = Math.max(this.canvas.width, this.canvas.height) / panZoom.scale + gridScale * 2;
@@ -131,7 +125,6 @@ class CanvasController {
     }
 
     private drawDots(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         const lw = this.background.dots.lineWidth * panZoom.scale;
         const gap = this.background.dots.gap * panZoom.scale;
 
@@ -269,6 +262,8 @@ class CanvasController {
     /* ------------------------------- Nodes Related ------------------------------- */
 
     private drawNode(node: INode) : void {
+        this.current.hovered = undefined;
+
         this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
         this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
@@ -281,7 +276,6 @@ class CanvasController {
         if(SHAPES.CIRCLE in node.shape) {
             this.renderArc(node);
         }
-
         if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
             this.current.hovered = node;
         }
@@ -320,7 +314,6 @@ class CanvasController {
     private getShapeBound(shape: { polygon?: IPolygon; circle?: ICircle; }): number {
         return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
     }
-
 
 
     /* *******************************  Nodes Related ******************************* */

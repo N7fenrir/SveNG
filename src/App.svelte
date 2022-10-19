@@ -20,7 +20,7 @@
             lineWidth : 4, // dot size
             gap: 64, // controls density
             fillStyle: "#000000" // dots color size
-        }
+        },
     }
 
     export let nodes: INode[] = [
