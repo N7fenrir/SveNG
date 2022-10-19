@@ -13,7 +13,7 @@ A Svelte Node Graph with CRUD options
 
 - [] TODO: Nodes
 - [] TODO: Edges
-- [] ODO: Node Styles
+- [] TODO: Node Styles
 - [] TODO: Edge Styles
 - [] TODO: Configurable Buttons
 - [] TODO: Add Node

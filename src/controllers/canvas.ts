@@ -39,6 +39,11 @@ class CanvasController {
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
             mouse.button = false;
+            this.current.selected = undefined;
+            if(this.current.hovered) {
+                this.current.selected = this.current.hovered;
+                // TODO: On Node Selection Throw node to user in a function callback.
+            }
         }
     }
 
@@ -315,6 +320,9 @@ class CanvasController {
         return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
     }
 
+    private selectNodeAndShow() {
+
+    }
 
     /* *******************************  Nodes Related ******************************* */
 
