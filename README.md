@@ -25,7 +25,8 @@ A Svelte Node Store with CRUD options
 - [x] Callback on node Selected with node as param
 - [x] Callback on node Hovered with node as param
 - [x] CRUD based purely on given nodesList, let user manipulate his list
-- [] TODO: Add Display functionality with custom Content
+- [x] Add Display functionality with custom Content
+- [] TODO: Draggable Nodes
 
 ### Edge:
 

@@ -28,7 +28,10 @@ interface IMousePointer {
     wheel : number;
     lastX : number;
     lastY : number;
-    drag : boolean;
+    clientX : number;
+    clientY : number;
+    pan : boolean;
+    drag: boolean;
 }
 
 interface IPoint {

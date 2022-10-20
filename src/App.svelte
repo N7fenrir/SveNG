@@ -32,10 +32,7 @@
     }
 
     function onNodeSelect(nodeID: string | number | undefined ) {
-        // Checking Create Node option
-        nodes.push(newNode);
-        // Checking Node Update
-        nodes[2].shape.width = 25;
+        // write what you want
     }
 
     function onNodeHover(nodeID: string) {
@@ -66,7 +63,7 @@
             x: 100,
             y: 100,
             shape: {
-                width: 25,
+                width: 25
             },
             style: {
                 default: {
@@ -87,7 +84,6 @@
                     strokeColor: "00cc99",
                     strokeWidth: 5,
                     fontColor: "black"
-
                 }
             },
             display: {

@@ -43,6 +43,7 @@ class CanvasController {
         if(!mouse.button){
             this.mouseEventBoundsCalc(e);
             mouse.button = true
+            this.checkAndToggleSelectedNode();
         }
     }
 
@@ -50,7 +51,7 @@ class CanvasController {
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
             mouse.button = false;
-            this.checkAndToggleSelectedNode();
+            this.dropNode(e);
         }
     }
 
@@ -66,8 +67,25 @@ class CanvasController {
         }
     }
 
+    // TODO: Refactor Code
+    private dropNode(e: MouseEvent): void {
+        if(this.graphHandle.current.selected) {
+            const selected = this.graphHandle.current.selected;
+            this.graphHandle.current.selected.shape.height?
+            function() {
+                selected.x =  e.clientX - selected.shape.width / 2;
+                selected.y = e.clientY - selected.shape.height / 2;
+            }() : function () {
+                    selected.x = e.clientX;
+                    selected.y = e.clientY;
+            } ();
+            this.graphHandle.current.selected = undefined;
+        }
+    }
+
     public mouseMoveEvent(e: MouseEvent) : void {
         this.mouseEventBoundsCalc(e);
+
     }
 
     public wheelEvent(e: WheelEvent): void {
@@ -228,25 +246,30 @@ class CanvasController {
 
     private checkForPan() {
         if (mouse.button) {
-            if (!mouse.drag) {
+            if (!mouse.pan) {
                 mouse.lastX = mouse.x;
                 mouse.lastY = mouse.y;
-                mouse.drag = true;
+                this.graphHandle.current.selected?
+                mouse.drag = true :
+                mouse.pan = true;
             } else {
                 panZoom.x += mouse.x - mouse.lastX;
                 panZoom.y += mouse.y - mouse.lastY;
                 mouse.lastX = mouse.x;
                 mouse.lastY = mouse.y;
             }
-        } else if (mouse.drag) {
+        } else if (mouse.pan) {
+            mouse.pan = false;
             mouse.drag = false;
         }
     }
 
     private mouseEventBoundsCalc(e: MouseEvent | WheelEvent): void {
         let bounds = this.canvas.getBoundingClientRect();
-        mouse.x = e.clientX - bounds.left;
-        mouse.y = e.clientY - bounds.top;
+        mouse.clientX = e.clientX;
+        mouse.clientY = e.clientY;
+        mouse.x = mouse.clientX - bounds.left;
+        mouse.y = mouse.clientY - bounds.top;
     }
 
     /* *******************************  Mouse Events ******************************* */
@@ -318,13 +341,39 @@ class CanvasController {
         this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
     }
 
+    // TODO: Refactor and optimize
     private renderShape(node: INode): void {
-        let x = node.x * panZoom.scale;
-        let y = node.y * panZoom.scale
-        node.shape?
-        this.ctx.rect(x, y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale)  :
-        this.ctx.arc( x, y, node.shape.width * panZoom.scale, 0, 2 * Math.PI);
+        const ctx = this.ctx;
+        const current = this.graphHandle.current.selected
+        let pos : IPoint = {
+            x : node.x * panZoom.scale,
+            y : node.y * panZoom.scale
+        }
+        node.shape.height?
+            function() {
+                if(current === node && mouse.drag) {
+                    // @ts-ignore
+                    let p = panZoom.toWorld(mouse.x, mouse.y);
+                    pos.x = p.x * panZoom.scale - (node.shape.width /2);
+                    pos.y =  p.y * panZoom.scale - (node.shape.height /2);
+                    node.x = pos.x;
+                    node.y = pos.y;
+                }
+                ctx.rect(pos.x, pos.y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale)
+            }():
+            function() {
+                if(current === node && mouse.drag) {
+                    // @ts-ignore
+                    let p = panZoom.toWorld(mouse.x, mouse.y);
+                    pos.x = p.x * panZoom.scale;
+                    pos.y =  p.y * panZoom.scale;
+                    node.x = pos.x;
+                    node.y = pos.y;
+                }
+                ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI);
+            }()
     }
+
 
     private checkIfNodeOutOfBounds(node: INode) : boolean {
         const shape = this.getShapeBound(node.shape);
