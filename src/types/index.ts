@@ -1,8 +1,6 @@
 const TEXT_ALIGN = ["left", "right", "center"] as const;
 const TEXT_BASELINE = ['top', 'hanging', 'middle', 'alphabetic', 'ideographic', 'bottom'] as const;
 
-// TODO: Transform type ICIRLCE and IPOLYGON to a singular Interface. only width compulsion, height optional.
-
 interface ICanvasBackground {
     grid? : ICanvasGrid,
     dots? : ICanvasDots,
@@ -48,19 +46,11 @@ interface IPanZoomHandler {
 }
 
 
-interface IPolygon {
+interface INodeShape {
     width: number;
-    height: number,
+    height?: number,
 }
 
-interface ICircle {
-    radius: number,
-}
-
-enum SHAPES {
-    POLYGON = "quad",
-    CIRCLE = "circle"
-}
 
 enum POINTERS {
     GRAB = "grab",
@@ -80,10 +70,7 @@ interface INode {
     id: number | string;
     x: number;
     y:number;
-    shape: {
-        [SHAPES.POLYGON]? : IPolygon,
-        [SHAPES.CIRCLE]? : ICircle,
-    };
+    shape: INodeShape;
     style?: {
         default: IHoverAndSelectStyle,
         onHover?: IHoverAndSelectStyle,
@@ -122,5 +109,5 @@ interface IObjectOperations {
 }
 
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
-export {SHAPES, POINTERS}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, INodeShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
+export { POINTERS}

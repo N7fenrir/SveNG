@@ -1,7 +1,6 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
     import type {INode} from "./types";
-    import {SHAPES} from "./types";
 
     export let width = "100vw";
     export let height = "100vh";
@@ -11,9 +10,7 @@
         x: 500,
         y: 100,
         shape: {
-            circle : {
-                radius: 35,
-            },
+            width: 35,
         },
         style: {
             default: {
@@ -38,7 +35,7 @@
         // Checking Create Node option
         nodes.push(newNode);
         // Checking Node Update
-        nodes[2].shape[SHAPES.POLYGON].width = 25;
+        nodes[2].shape.width = 25;
     }
 
     function onNodeHover(nodeID: string) {
@@ -69,9 +66,7 @@
             x: 100,
             y: 100,
             shape: {
-                circle : {
-                    radius: 25,
-                },
+                width: 25,
             },
             style: {
                 default: {
@@ -107,10 +102,8 @@
             x: 200,
             y: 100,
             shape: {
-                quad : {
-                    width: 75,
-                    height: 35
-                },
+                width: 75,
+                height: 35
             },
             style: {
                 default:{
@@ -142,10 +135,8 @@
             x: 300,
             y: 100,
             shape: {
-                quad : {
-                    width: 100,
-                    height: 50
-                },
+                width: 75,
+                height: 35
             },
             style: {
                 default:{

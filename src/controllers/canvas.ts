@@ -14,13 +14,11 @@ import {mouse} from "./mouse";
 import type {
     ICanvasBackground,
     ICanvasElementOperations,
-    ICircle,
     IHoverAndSelectStyle,
     INode,
     IPoint,
-    IPolygon
+    INodeShape
 } from "../types";
-import {SHAPES} from "../types";
 import Store from "./store";
 
 class CanvasController {
@@ -268,7 +266,7 @@ class CanvasController {
     private drawNode(node: INode) : void {
         this.setStyle(node.style.default);
         this.ctx.beginPath();
-        SHAPES.POLYGON in node.shape ? this.renderQuad(node) : this.renderArc(node);
+        this.renderShape(node);
         this.ctx.closePath();
         this.setupNodeHoverAttr(node);
         this.ctx.stroke();
@@ -280,22 +278,21 @@ class CanvasController {
         this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
         this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
         this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
-
         if(this.graphHandle.current.hovered === node) {
             this.ctx.fillStyle = node.style.onHover.fontColor || DEFAULT_WHITE;
         }
         if(this.graphHandle.current.selected === node) {
             this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
         }
-        const pos = this.calculatePos(node);
-        this.ctx.fillText(node.display?.text, pos.x, pos.y);
+        const textPos : IPoint = this.getTextPosForNode(node);
+        this.ctx.fillText(node.display?.text, textPos.x, textPos.y);
     }
 
-    private calculatePos(node: INode) : IPoint {
+    private getTextPosForNode(node: INode) : IPoint {
         let x = node.x * panZoom.scale;
         let y = node.y * panZoom.scale
-        return "quad" in node.shape?
-            {x : x + (node.shape[SHAPES.POLYGON].width * panZoom.scale / 2), y: y + (node.shape[SHAPES.POLYGON].height  * panZoom.scale / 2)} :
+        return node.shape.height?
+            {x : x + (node.shape.width * panZoom.scale / 2), y: y + (node.shape.height  * panZoom.scale / 2)} :
             {x: x  , y: y }
     }
 
@@ -321,21 +318,12 @@ class CanvasController {
         this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
     }
 
-    private renderQuad(node: INode): void {
-        this.ctx.rect(
-            node.x * panZoom.scale,
-            node.y * panZoom.scale,
-            node.shape[SHAPES.POLYGON].width  * panZoom.scale,
-            node.shape[SHAPES.POLYGON].height  * panZoom.scale);
-    }
-
-    private renderArc(node: INode): void {
-        this.ctx.arc(
-            node.x * panZoom.scale,
-            node.y * panZoom.scale,
-            node.shape[SHAPES.CIRCLE].radius * panZoom.scale,
-            0,
-            2 * Math.PI);
+    private renderShape(node: INode): void {
+        let x = node.x * panZoom.scale;
+        let y = node.y * panZoom.scale
+        node.shape?
+        this.ctx.rect(x, y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale)  :
+        this.ctx.arc( x, y, node.shape.width * panZoom.scale, 0, 2 * Math.PI);
     }
 
     private checkIfNodeOutOfBounds(node: INode) : boolean {
@@ -348,8 +336,8 @@ class CanvasController {
         );
     }
 
-    private getShapeBound(shape: { polygon?: IPolygon; circle?: ICircle; }): number {
-        return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
+    private getShapeBound(shape: INodeShape): number {
+        return shape.height ? Math.max(shape.width, shape.height) : shape.width;
     }
 
     /* *******************************  Nodes Related ******************************* */
