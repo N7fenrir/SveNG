@@ -10,27 +10,22 @@ import type {
     ICanvasElementOperations
 } from "../types";
 import { SHAPES } from "../types";
-import Graph from "./graph";
-
-
-
+import Store from "./store";
 
 class CanvasController {
-
 
     private readonly canvas: HTMLCanvasElement;
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
-    private graphHandle: Graph;
+    private graphHandle: Store;
     private operations!: ICanvasElementOperations;
-
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
-        this.graphHandle = new Graph()
+        this.graphHandle = new Store()
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
     }
@@ -82,7 +77,6 @@ class CanvasController {
         this.operations = operations;
     }
 
-
     /* ------------------------------- Background Related ------------------------------- */
 
     private setupBackgroundFunc(): () => void {
@@ -97,7 +91,6 @@ class CanvasController {
             return this.background.grid.adaptive? this.adaptiveGrid : this.nonAdaptiveGrid
         }
     }
-
 
     private adaptiveGrid(): void {
         let scale, gridScale, size, x, y;
@@ -159,8 +152,6 @@ class CanvasController {
         this.ctx.lineCap =  "round";
     }
 
-
-
     /* *******************************  Background Related ******************************* */
 
 
@@ -210,26 +201,6 @@ class CanvasController {
         this.drawAllNodes()
     }
 
-    /**
-     * Deprecated : Draw a crosshair. Done with css
-     * @private
-     */
-    private _drawPointer() : void {
-        // @ts-ignore optional parameter p
-        const worldCoordinate = panZoom.toWorld(mouse.x, mouse.y);
-        panZoom.apply(this.ctx);
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "red";
-        this.ctx.beginPath();
-        this.ctx.moveTo(worldCoordinate.x - 10, worldCoordinate.y);
-        this.ctx.lineTo(worldCoordinate.x + 10, worldCoordinate.y);
-        this.ctx.moveTo(worldCoordinate.x, worldCoordinate.y - 10);
-        this.ctx.lineTo(worldCoordinate.x, worldCoordinate.y + 10);
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.stroke();
-    }
-
-
     /* *******************************  Update Frame Events ******************************* */
 
 
@@ -269,13 +240,10 @@ class CanvasController {
         mouse.y = e.clientY - bounds.top;
     }
 
-
     /* *******************************  Mouse Events ******************************* */
 
 
-
     /* ------------------------------- Nodes Related ------------------------------- */
-
 
     private drawAllNodes(): void {
         this.graphHandle.nodes.forEach((node: INode ) => {
@@ -349,9 +317,7 @@ class CanvasController {
         return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
     }
 
-
     /* *******************************  Nodes Related ******************************* */
-
 
 
 }

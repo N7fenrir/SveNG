@@ -1,12 +1,46 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
     import type {INode} from "./types";
+    import {SHAPES} from "./types";
 
     export let width = "100vw";
     export let height = "100vh";
 
+    const newNode =  {
+        id: 4,
+        x: 500,
+        y: 100,
+        shape: {
+            circle : {
+                radius: 35,
+            },
+        },
+        style: {
+            default: {
+                fillColor: "pink",
+                strokeColor: "blue",
+                strokeWidth: 9
+            },
+            onHover: {
+                fillColor: "#00cc99",
+                strokeColor: "00cc99",
+                strokeWidth: 15
+            },
+            onSelect: {
+                fillColor: "#00cc99",
+                strokeColor: "00cc99",
+                strokeWidth: 5
+            }
+        },
+        content: "ASD"
+    }
+
     function onNodeSelect(node: INode) {
         console.log("Selected Node", node);
+        // Checking Create Node option
+        nodes.push(newNode);
+        // Checking Node Update
+        nodes[2].shape[SHAPES.POLYGON].width = 25;
     }
 
     function onNodeHover(node: INode) {
@@ -123,6 +157,7 @@
             content: "ASD"
         },
     ]
+
 
 
 </script>

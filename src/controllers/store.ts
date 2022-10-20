@@ -1,7 +1,7 @@
 import type {INode} from "../types";
 import type {IInteractedNodes} from "../types";
 
-class Graph {
+class Store {
 
     public nodes: INode[];
     public current: IInteractedNodes;
@@ -14,8 +14,6 @@ class Graph {
         }
     }
 
-
-
 }
 
-export default Graph;
+export default Store;
