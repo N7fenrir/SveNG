@@ -1,3 +1,4 @@
+
 interface ICanvasBackground {
     grid? : ICanvasGrid,
     dots? : ICanvasDots,
@@ -78,9 +79,9 @@ interface INode {
         [SHAPES.CIRCLE]? : ICircle,
     };
     style?: {
-        borderThickness?: number;
-        borderColor?: string;
-        fillColor?: string;
+        default: IHoverAndSelectStyle
+        onHover?: IHoverAndSelectStyle,
+        onSelect?: IHoverAndSelectStyle
     }
     content: string
     image?: {
@@ -90,5 +91,22 @@ interface INode {
     }
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes}
+
+interface IHoverAndSelectStyle {
+    fillColor: string,
+    strokeColor: string
+    strokeWidth: number;
+}
+
+interface ICanvasElementOperations {
+    node : IObjectOperations;
+}
+
+interface IObjectOperations {
+        onSelect?: (node: INode) => void,
+        onHover?: (node: INode) => void
+}
+
+
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes, IHoverAndSelectStyle, ICanvasElementOperations}
 export {SHAPES, POINTERS}

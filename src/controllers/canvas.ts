@@ -1,8 +1,17 @@
 import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_WHITE} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type {INode, ICanvasBackground, IPolygon, ICircle, IInteractedNodes} from "../types";
-import {POINTERS, SHAPES} from "../types";
+import type {
+    INode,
+    ICanvasBackground,
+    IPolygon,
+    ICircle,
+    IHoverAndSelectStyle,
+    ICanvasElementOperations
+} from "../types";
+import { SHAPES } from "../types";
+import Graph from "./graph";
+
 
 
 
@@ -13,17 +22,15 @@ class CanvasController {
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
-    private current: IInteractedNodes;
-    private nodes: INode[];
+    private graphHandle: Graph;
+    private operations!: ICanvasElementOperations;
+
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
-        this.current = {
-            hovered : undefined,
-            selected: undefined,
-        };
+        this.graphHandle = new Graph()
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
     }
@@ -39,11 +46,18 @@ class CanvasController {
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
             mouse.button = false;
-            this.current.selected = undefined;
-            if(this.current.hovered) {
-                this.current.selected = this.current.hovered;
-                // TODO: On Node Selection Throw node to user in a function callback.
+            this.checkAndToggleSelectedNode();
+        }
+    }
+
+    private checkAndToggleSelectedNode() : void {
+        if(this.graphHandle.current.hovered) {
+            if(this.graphHandle.current.selected !== this.graphHandle.current.hovered) {
+                this.graphHandle.current.selected = this.graphHandle.current.hovered;
+            } else {
+                this.graphHandle.current.selected = undefined;
             }
+            this.operations.node.onSelect(this.graphHandle.current.selected);
         }
     }
 
@@ -61,17 +75,11 @@ class CanvasController {
     }
 
     public setupInitialNodes(nodes: INode[]) : void {
-        console.log(nodes);
-        this.nodes = nodes;
+        this.graphHandle.nodes = nodes;
     };
 
-    private drawAllNodes(): void {
-        this.nodes.forEach((node: INode ) => {
-            const out = this.checkIfNodeOutOfBounds(node);
-            if(!out){
-                this.drawNode(node)
-            }
-        });
+    public setupOps(operations: ICanvasElementOperations): void {
+        this.operations = operations;
     }
 
 
@@ -173,6 +181,8 @@ class CanvasController {
     }
 
     private resetCanvasTransformAndAlpha(): void {
+        // TODO: Check do I need the hovered = undefined?
+        // this.graphHandle.current.hovered = undefined;
         this.ctx.setTransform(1, 0, 0, 1, 0, 0 );
         this.ctx.globalAlpha = 1;
     }
@@ -266,27 +276,46 @@ class CanvasController {
 
     /* ------------------------------- Nodes Related ------------------------------- */
 
+
+    private drawAllNodes(): void {
+        this.graphHandle.nodes.forEach((node: INode ) => {
+            const out = this.checkIfNodeOutOfBounds(node);
+            if(!out){
+                this.drawNode(node);
+            }
+        });
+    }
+
     private drawNode(node: INode) : void {
-        this.current.hovered = undefined;
-
-        this.ctx.lineWidth = node.style?.borderThickness || DEFAULT_LINE_WIDTH;
-        this.ctx.strokeStyle = node.style?.borderColor || DEFAULT_BLACK;
-        this.ctx.fillStyle = node.style?.fillColor || DEFAULT_WHITE;
-
+        this.setStyle(node.style.default);
         this.ctx.beginPath();
+        SHAPES.POLYGON in node.shape ? this.renderQuad(node) : this.renderArc(node);
+        this.ctx.closePath();
+        this.setupNodeHoverAttr(node);
 
-        if(SHAPES.POLYGON in node.shape) {
-            this.renderQuad(node);
-        }
-        if(SHAPES.CIRCLE in node.shape) {
-            this.renderArc(node);
-        }
-        if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
-            this.current.hovered = node;
-        }
-
-        this.ctx.fill();
         this.ctx.stroke();
+        this.ctx.fill();
+    }
+
+    private setupNodeHoverAttr(node: INode): void {
+        if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
+            this.onHoverOps(node);
+        }
+        if(this.graphHandle.current.selected === node) {
+            this.setStyle(node.style.onSelect);
+        }
+    }
+
+    private onHoverOps(node: INode): void {
+        this.graphHandle.current.hovered = node;
+        this.operations.node.onHover(this.graphHandle.current.hovered)
+        this.setStyle(node.style.onHover);
+    }
+
+    private setStyle(style: IHoverAndSelectStyle) : void {
+        this.ctx.lineWidth = style?.strokeWidth || DEFAULT_LINE_WIDTH;
+        this.ctx.strokeStyle = style?.strokeColor || DEFAULT_BLACK;
+        this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
     }
 
     private renderQuad(node: INode): void {
@@ -320,14 +349,8 @@ class CanvasController {
         return SHAPES.CIRCLE in shape ? shape[SHAPES.CIRCLE].radius :  Math.max(shape[SHAPES.POLYGON].width, shape[SHAPES.POLYGON].height);
     }
 
-    private selectNodeAndShow() {
-
-    }
 
     /* *******************************  Nodes Related ******************************* */
-
-
-
 
 
 

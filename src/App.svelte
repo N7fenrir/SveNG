@@ -5,6 +5,14 @@
     export let width = "100vw";
     export let height = "100vh";
 
+    function onNodeSelect(node: INode) {
+        console.log("Selected Node", node);
+    }
+
+    function onNodeHover(node: INode) {
+        console.log("Hovered Node", node)
+    }
+
     export let gridBackground = {
         grid : {
             adaptive : false,
@@ -34,7 +42,21 @@
                 },
             },
             style: {
-                fillColor: "#00cc99",
+                default: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 2
+                },
+                onHover: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 15
+                },
+                onSelect: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 5
+                }
             },
             content: "ASD"
             },
@@ -50,13 +72,29 @@
                 },
             },
             style: {
-                fillColor: "#00cc99",
+                default:{
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 2
+                },
+                onHover: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 5
+
+                },
+                onSelect: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 5
+
+                }
             },
             content: "ASD"
         },
         {
             id: 3,
-            x: 200,
+            x: 300,
             y: 100,
             shape: {
                 quad : {
@@ -65,7 +103,22 @@
                 },
             },
             style: {
-                fillColor: "pink",
+                default:{
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 2
+                },
+                onHover: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 15
+
+                },
+                onSelect: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 5
+                }
             },
             content: "ASD"
         },
@@ -80,5 +133,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas nodes={nodes}  background={dotsBackground} />
+    <Canvas nodes={nodes}  background={dotsBackground} {onNodeSelect} {onNodeHover} />
 </div>

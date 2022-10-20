@@ -6,15 +6,23 @@
 
     export let background;
     export let nodes: INode[];
+    export let onNodeSelect: (node: INode) => void = () => {};
+    export let onNodeHover: (node: INode) => void = () => {};
 
     let canvasContext = null;
     let canvasHelper;
+
+    const nodeOps = {
+        onSelect : onNodeSelect,
+        onHover : onNodeHover
+    }
 
 
     onMount(() => {
         if(canvasContext !== null) {
             canvasHelper = new CanvasController(canvasContext, background);
             canvasHelper.setupInitialNodes(nodes);
+            canvasHelper.setupOps( {node: nodeOps })
             canvasHelper.requestRedraw();
         }
     })
@@ -36,6 +44,8 @@
     function mouseUpEvent(e: MouseEvent) {
         canvasHelper.mouseUpEvent(e);
     }
+
+
 
 </script>
 
