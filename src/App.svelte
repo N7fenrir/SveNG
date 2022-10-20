@@ -6,7 +6,7 @@
     export let width = "100vw";
     export let height = "100vh";
 
-    const newNode =  {
+    const newNode: INode =  {
         id: 4,
         x: 500,
         y: 100,
@@ -31,20 +31,18 @@
                 strokeColor: "00cc99",
                 strokeWidth: 5
             }
-        },
-        content: "ASD"
+        }
     }
 
-    function onNodeSelect(node: INode) {
-        console.log("Selected Node", node);
+    function onNodeSelect(nodeID: string | number | undefined ) {
         // Checking Create Node option
         nodes.push(newNode);
         // Checking Node Update
         nodes[2].shape[SHAPES.POLYGON].width = 25;
     }
 
-    function onNodeHover(node: INode) {
-        console.log("Hovered Node", node)
+    function onNodeHover(nodeID: string) {
+        // write what you want
     }
 
     export let gridBackground = {
@@ -79,20 +77,29 @@
                 default: {
                     fillColor: "#00cc99",
                     strokeColor: "00cc99",
-                    strokeWidth: 2
+                    strokeWidth: 2,
+                    fontStyle: "16px sans-serif",
+                    fontColor: "white"
                 },
                 onHover: {
                     fillColor: "#00cc99",
                     strokeColor: "00cc99",
-                    strokeWidth: 15
+                    strokeWidth: 15,
+                    fontColor: "red"
                 },
                 onSelect: {
                     fillColor: "#00cc99",
                     strokeColor: "00cc99",
-                    strokeWidth: 5
+                    strokeWidth: 5,
+                    fontColor: "black"
+
                 }
             },
-            content: "ASD"
+            display: {
+                text: "1",
+                textAlign: "center",
+                textBaseLine: "middle",
+            }
             },
 
         {
@@ -124,7 +131,11 @@
 
                 }
             },
-            content: "ASD"
+            display: {
+                text: "2",
+                textAlign: "center",
+                textBaseLine: "middle",
+            }
         },
         {
             id: 3,
@@ -152,10 +163,14 @@
                     fillColor: "#00cc99",
                     strokeColor: "00cc99",
                     strokeWidth: 5
-                }
+                },
             },
-            content: "ASD"
-        },
+            display: {
+                text: "3",
+                textAlign: "center",
+                textBaseLine: "middle",
+            }
+            },
     ]
 
 

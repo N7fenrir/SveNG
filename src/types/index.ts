@@ -1,3 +1,7 @@
+const TEXT_ALIGN = ["left", "right", "center"] as const;
+const TEXT_BASELINE = ['top', 'hanging', 'middle', 'alphabetic', 'ideographic', 'bottom'] as const;
+
+// TODO: Transform type ICIRLCE and IPOLYGON to a singular Interface. only width compulsion, height optional.
 
 interface ICanvasBackground {
     grid? : ICanvasGrid,
@@ -70,6 +74,8 @@ interface IInteractedNodes {
     hovered: INode;
 }
 
+
+
 interface INode {
     id: number | string;
     x: number;
@@ -79,11 +85,11 @@ interface INode {
         [SHAPES.CIRCLE]? : ICircle,
     };
     style?: {
-        default: IHoverAndSelectStyle
+        default: IHoverAndSelectStyle,
         onHover?: IHoverAndSelectStyle,
         onSelect?: IHoverAndSelectStyle
     }
-    content: string
+    display?: TNodeDisplay,
     image?: {
         src: string;
         altText: string;
@@ -91,11 +97,19 @@ interface INode {
     }
 }
 
+type TNodeDisplay = {
+    text: string;
+    textAlign?: typeof TEXT_ALIGN[number];
+    textBaseLine?: typeof TEXT_BASELINE[number];
+}
+
 
 interface IHoverAndSelectStyle {
     fillColor: string,
     strokeColor: string
     strokeWidth: number;
+    fontStyle?: string;
+    fontColor?: string
 }
 
 interface ICanvasElementOperations {
@@ -103,10 +117,10 @@ interface ICanvasElementOperations {
 }
 
 interface IObjectOperations {
-        onSelect?: (node: INode) => void,
-        onHover?: (node: INode) => void
+        onSelect?: (nodeID: string | number | undefined) => void,
+        onHover?: (nodeID: string | number | undefined) => void
 }
 
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes, IHoverAndSelectStyle, ICanvasElementOperations}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IPolygon, ICircle, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
 export {SHAPES, POINTERS}

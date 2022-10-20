@@ -1,15 +1,26 @@
-import {TOP_LEFT, SCALE_RATE, DEFAULT_BLACK, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_WHITE} from "../static";
+import {
+    DEFAULT_BLACK,
+    DEFAULT_LINE_WIDTH,
+    DEFAULT_SOLID,
+    DEFAULT_TEXT_STYLE,
+    DEFAULT_WHITE,
+    SCALE_RATE,
+    TEXT_ALIGN,
+    TEXT_BASELINE,
+    TOP_LEFT
+} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
 import type {
-    INode,
     ICanvasBackground,
-    IPolygon,
+    ICanvasElementOperations,
     ICircle,
     IHoverAndSelectStyle,
-    ICanvasElementOperations
+    INode,
+    IPoint,
+    IPolygon
 } from "../types";
-import { SHAPES } from "../types";
+import {SHAPES} from "../types";
 import Store from "./store";
 
 class CanvasController {
@@ -52,7 +63,8 @@ class CanvasController {
             } else {
                 this.graphHandle.current.selected = undefined;
             }
-            this.operations.node.onSelect(this.graphHandle.current.selected);
+            this.operations.node.onSelect(this.graphHandle.current.selected?
+                this.graphHandle.current.selected.id : undefined);
         }
     }
 
@@ -172,8 +184,7 @@ class CanvasController {
     }
 
     private resetCanvasTransformAndAlpha(): void {
-        // TODO: Check do I need the hovered = undefined?
-        // this.graphHandle.current.hovered = undefined;
+        this.graphHandle.current.hovered = undefined;
         this.ctx.setTransform(1, 0, 0, 1, 0, 0 );
         this.ctx.globalAlpha = 1;
     }
@@ -260,9 +271,32 @@ class CanvasController {
         SHAPES.POLYGON in node.shape ? this.renderQuad(node) : this.renderArc(node);
         this.ctx.closePath();
         this.setupNodeHoverAttr(node);
-
         this.ctx.stroke();
         this.ctx.fill();
+        node.display? this.writeNodeContent(node) : () => {};
+    }
+
+    private writeNodeContent(node: INode) : void {
+        this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
+        this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
+        this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
+
+        if(this.graphHandle.current.hovered === node) {
+            this.ctx.fillStyle = node.style.onHover.fontColor || DEFAULT_WHITE;
+        }
+        if(this.graphHandle.current.selected === node) {
+            this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
+        }
+        const pos = this.calculatePos(node);
+        this.ctx.fillText(node.display?.text, pos.x, pos.y);
+    }
+
+    private calculatePos(node: INode) : IPoint {
+        let x = node.x * panZoom.scale;
+        let y = node.y * panZoom.scale
+        return "quad" in node.shape?
+            {x : x + (node.shape[SHAPES.POLYGON].width * panZoom.scale / 2), y: y + (node.shape[SHAPES.POLYGON].height  * panZoom.scale / 2)} :
+            {x: x  , y: y }
     }
 
     private setupNodeHoverAttr(node: INode): void {
@@ -276,11 +310,12 @@ class CanvasController {
 
     private onHoverOps(node: INode): void {
         this.graphHandle.current.hovered = node;
-        this.operations.node.onHover(this.graphHandle.current.hovered)
+        this.operations.node.onHover(this.graphHandle.current.hovered.id)
         this.setStyle(node.style.onHover);
     }
 
     private setStyle(style: IHoverAndSelectStyle) : void {
+        this.ctx.font = style?.fontStyle || DEFAULT_TEXT_STYLE;
         this.ctx.lineWidth = style?.strokeWidth || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = style?.strokeColor || DEFAULT_BLACK;
         this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;

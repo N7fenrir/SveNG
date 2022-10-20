@@ -3,11 +3,10 @@
     import {onMount} from "svelte";
     import type {INode} from "../types";
 
-
     export let background;
     export let nodes: INode[];
-    export let onNodeSelect: (node: INode) => void = () => {};
-    export let onNodeHover: (node: INode) => void = () => {};
+    export let onNodeSelect: (nodeID: string | number | undefined) => void = () => {};
+    export let onNodeHover: (nodeID: string | number | undefined) => void = () => {};
 
     let canvasContext = null;
     let canvasHelper;
@@ -16,7 +15,6 @@
         onSelect : onNodeSelect,
         onHover : onNodeHover
     }
-
 
     onMount(() => {
         if(canvasContext !== null) {
