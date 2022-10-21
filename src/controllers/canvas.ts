@@ -16,8 +16,8 @@ import type {
     ICanvasElementOperations,
     IHoverAndSelectStyle,
     INode,
-    IPoint,
-    INodeShape
+    INodeShape,
+    IPoint
 } from "../types";
 import Store from "./store";
 
@@ -51,9 +51,9 @@ class CanvasController {
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
             mouse.button = false;
-            this.dropNode(e);
         }
     }
+
 
     private checkAndToggleSelectedNode() : void {
         if(this.graphHandle.current.hovered) {
@@ -67,25 +67,8 @@ class CanvasController {
         }
     }
 
-    // TODO: Refactor Code
-    private dropNode(e: MouseEvent): void {
-        if(this.graphHandle.current.selected) {
-            const selected = this.graphHandle.current.selected;
-            this.graphHandle.current.selected.shape.height?
-            function() {
-                selected.x =  e.clientX - selected.shape.width / 2;
-                selected.y = e.clientY - selected.shape.height / 2;
-            }() : function () {
-                    selected.x = e.clientX;
-                    selected.y = e.clientY;
-            } ();
-            this.graphHandle.current.selected = undefined;
-        }
-    }
-
     public mouseMoveEvent(e: MouseEvent) : void {
         this.mouseEventBoundsCalc(e);
-
     }
 
     public wheelEvent(e: WheelEvent): void {
@@ -110,6 +93,7 @@ class CanvasController {
     private setupBackgroundFunc(): () => void {
         if("solid" in this.background) {
             this.canvas.style.backgroundColor = this.background? this.background.solid : DEFAULT_SOLID ;
+            return () => {}
         }
         if("dots" in this.background) {
             return this.drawDots
@@ -289,15 +273,15 @@ class CanvasController {
     private drawNode(node: INode) : void {
         this.setStyle(node.style.default);
         this.ctx.beginPath();
-        this.renderShape(node);
+        const nodePos = this.renderShape(node);
         this.ctx.closePath();
         this.setupNodeHoverAttr(node);
         this.ctx.stroke();
         this.ctx.fill();
-        node.display? this.writeNodeContent(node) : () => {};
+        if(node.display) this.writeNodeContent(node, nodePos);
     }
 
-    private writeNodeContent(node: INode) : void {
+    private writeNodeContent(node: INode, nodePos: IPoint) : void {
         this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
         this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
         this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
@@ -307,16 +291,7 @@ class CanvasController {
         if(this.graphHandle.current.selected === node) {
             this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
         }
-        const textPos : IPoint = this.getTextPosForNode(node);
-        this.ctx.fillText(node.display?.text, textPos.x, textPos.y);
-    }
-
-    private getTextPosForNode(node: INode) : IPoint {
-        let x = node.x * panZoom.scale;
-        let y = node.y * panZoom.scale
-        return node.shape.height?
-            {x : x + (node.shape.width * panZoom.scale / 2), y: y + (node.shape.height  * panZoom.scale / 2)} :
-            {x: x  , y: y }
+        this.ctx.fillText(node.display?.text, nodePos.x, nodePos.y);
     }
 
     private setupNodeHoverAttr(node: INode): void {
@@ -341,37 +316,43 @@ class CanvasController {
         this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
     }
 
-    // TODO: Refactor and optimize
-    private renderShape(node: INode): void {
-        const ctx = this.ctx;
-        const current = this.graphHandle.current.selected
-        let pos : IPoint = {
-            x : node.x * panZoom.scale,
-            y : node.y * panZoom.scale
+    private renderShape(node: INode): IPoint {
+        let pos =  {
+            x: node.x * panZoom.scale,
+            y: node.y * panZoom.scale
+        };
+        if(this.graphHandle.current.selected === node && mouse.drag) {
+            pos = this.getShapeDragAndDropPos(pos);
+            if(!mouse.button) {
+                mouse.drag = false;
+                this.graphHandle.current.selected = undefined;
+            }
         }
         node.shape.height?
-            function() {
-                if(current === node && mouse.drag) {
-                    // @ts-ignore
-                    let p = panZoom.toWorld(mouse.x, mouse.y);
-                    pos.x = p.x * panZoom.scale - (node.shape.width /2);
-                    pos.y =  p.y * panZoom.scale - (node.shape.height /2);
-                    node.x = pos.x;
-                    node.y = pos.y;
-                }
-                ctx.rect(pos.x, pos.y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale)
-            }():
-            function() {
-                if(current === node && mouse.drag) {
-                    // @ts-ignore
-                    let p = panZoom.toWorld(mouse.x, mouse.y);
-                    pos.x = p.x * panZoom.scale;
-                    pos.y =  p.y * panZoom.scale;
-                    node.x = pos.x;
-                    node.y = pos.y;
-                }
-                ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI);
-            }()
+            (
+                this.ctx.rect(pos.x, pos.y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale),
+                pos = {x : pos.x + (node.shape.width * panZoom.scale/ 2), y: pos.y + (node.shape.height * panZoom.scale / 2)}
+            )
+            :
+            (
+                this.ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI)
+            )
+        return pos;
+    }
+
+    private getShapeDragAndDropPos(pos: IPoint) : IPoint {
+        // @ts-ignore
+        let p = panZoom.toWorld(mouse.x, mouse.y);
+        pos = {x: p.x * panZoom.scale, y : p.y * panZoom.scale}
+        if(this.graphHandle.current.selected.shape.height) {
+            pos = {
+                x : pos.x - (this.graphHandle.current.selected.shape.width * panZoom.scale /2),
+                y: pos.y - (this.graphHandle.current.selected.shape.height  * panZoom.scale /2)
+            }
+        }
+        this.graphHandle.current.selected.x = pos.x / panZoom.scale;
+        this.graphHandle.current.selected.y = pos.y / panZoom.scale;
+        return pos
     }
 
 
