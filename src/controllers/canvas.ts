@@ -1,31 +1,49 @@
-import {TOP_LEFT, SCALE_RATE, GRID_STROKE_COLOR, DEFAULT_SOLID} from "../static";
+import {
+    DEFAULT_BLACK,
+    DEFAULT_LINE_WIDTH,
+    DEFAULT_SOLID,
+    DEFAULT_TEXT_STYLE,
+    DEFAULT_WHITE,
+    SCALE_RATE,
+    TEXT_ALIGN,
+    TEXT_BASELINE,
+    TOP_LEFT
+} from "../static";
 import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
-import type { ICanvasBackground } from "../types";
-
-
+import type {
+    ICanvasBackground,
+    ICanvasElementOperations,
+    IHoverAndSelectStyle,
+    INode,
+    INodeShape,
+    IPoint
+} from "../types";
+import Store from "./store";
 
 class CanvasController {
-
 
     private readonly canvas: HTMLCanvasElement;
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
+    private graphHandle: Store;
+    private operations!: ICanvasElementOperations;
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
+        this.graphHandle = new Store()
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
-        requestAnimationFrame(this.updateFrame);
     }
 
     public mouseDownEvent(e: MouseEvent) : void {
         if(!mouse.button){
             this.mouseEventBoundsCalc(e);
             mouse.button = true
+            this.checkAndToggleSelectedNode();
         }
     }
 
@@ -33,6 +51,19 @@ class CanvasController {
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
             mouse.button = false;
+        }
+    }
+
+
+    private checkAndToggleSelectedNode() : void {
+        if(this.graphHandle.current.hovered) {
+            if(this.graphHandle.current.selected !== this.graphHandle.current.hovered) {
+                this.graphHandle.current.selected = this.graphHandle.current.hovered;
+            } else {
+                this.graphHandle.current.selected = undefined;
+            }
+            this.operations.node.onSelect(this.graphHandle.current.selected?
+                this.graphHandle.current.selected.id : undefined);
         }
     }
 
@@ -45,29 +76,35 @@ class CanvasController {
         mouse.wheel += -e.deltaY;
     }
 
+    public requestRedraw() : void {
+        requestAnimationFrame(this.updateFrame);
+    }
+
+    public setupInitialNodes(nodes: INode[]) : void {
+        this.graphHandle.nodes = nodes;
+    };
+
+    public setupOps(operations: ICanvasElementOperations): void {
+        this.operations = operations;
+    }
 
     /* ------------------------------- Background Related ------------------------------- */
 
     private setupBackgroundFunc(): () => void {
+        if("solid" in this.background) {
+            this.canvas.style.backgroundColor = this.background? this.background.solid : DEFAULT_SOLID ;
+            return () => {}
+        }
         if("dots" in this.background) {
             return this.drawDots
         }
         if("grid" in this.background) {
-            this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : GRID_STROKE_COLOR
+            this.background.grid.strokeColor  = this.background.grid.strokeColor ? this.background.grid.strokeColor : DEFAULT_BLACK
             return this.background.grid.adaptive? this.adaptiveGrid : this.nonAdaptiveGrid
         }
-        if("solid" in this.background) {
-            return this.drawSolidBackgroundColor
-        }
-    }
-
-    private drawSolidBackgroundColor() {
-        this.ctx.fillStyle = this.background.solid? this.background.solid : DEFAULT_SOLID;
-        this.ctx.fillRect(TOP_LEFT.x, TOP_LEFT.y, this.canvas.width, this.canvas.height);
     }
 
     private adaptiveGrid(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         let scale, gridScale, size, x, y;
         scale = 1 / panZoom.scale;
         gridScale = 2 ** (Math.log2(this.background.grid.gridScreenSize * scale) | 0);
@@ -78,7 +115,6 @@ class CanvasController {
     }
 
     private nonAdaptiveGrid(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         let gridScale, size, x, y;
         gridScale = this.background.grid.gridScreenSize;
         size = Math.max(this.canvas.width, this.canvas.height) / panZoom.scale + gridScale * 2;
@@ -107,7 +143,6 @@ class CanvasController {
     }
 
     private drawDots(): void {
-        if(this.background.solid)  this.drawSolidBackgroundColor();
         const lw = this.background.dots.lineWidth * panZoom.scale;
         const gap = this.background.dots.gap * panZoom.scale;
 
@@ -129,8 +164,6 @@ class CanvasController {
         this.ctx.lineCap =  "round";
     }
 
-
-
     /* *******************************  Background Related ******************************* */
 
 
@@ -140,12 +173,19 @@ class CanvasController {
         this.resetCanvasTransformAndAlpha()
         this.canvasSafetyBounds();
         this.perFrameCheckZoomPan();
-        this.perFrameDrawBackgroundAndPointer();
+        this.perFrameRender();
         requestAnimationFrame(this.updateFrame);
     }
 
+    private perFrameRender() {
+        this.renderBackgroundAndPointer();
+        this.ctx.translate(panZoom.x, panZoom.y);
+        this.renderNodes();
+    }
+
     private resetCanvasTransformAndAlpha(): void {
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.graphHandle.current.hovered = undefined;
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0 );
         this.ctx.globalAlpha = 1;
     }
 
@@ -163,26 +203,14 @@ class CanvasController {
         this.checkForPan();
     }
 
-    private perFrameDrawBackgroundAndPointer(): void{
+    private renderBackgroundAndPointer(): void{
         this.drawBackground();
-        this.drawPointer()
+        // this.drawPointer()
     }
 
-    private drawPointer() : void {
-        // @ts-ignore optional parameter p
-        const worldCoordinate = panZoom.toWorld(mouse.x, mouse.y);
-        panZoom.apply(this.ctx);
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = "red";
-        this.ctx.beginPath();
-        this.ctx.moveTo(worldCoordinate.x - 10, worldCoordinate.y);
-        this.ctx.lineTo(worldCoordinate.x + 10, worldCoordinate.y);
-        this.ctx.moveTo(worldCoordinate.x, worldCoordinate.y - 10);
-        this.ctx.lineTo(worldCoordinate.x, worldCoordinate.y + 10);
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.stroke();
+    private renderNodes() : void {
+        this.drawAllNodes()
     }
-
 
     /* *******************************  Update Frame Events ******************************* */
 
@@ -202,31 +230,142 @@ class CanvasController {
 
     private checkForPan() {
         if (mouse.button) {
-            if (!mouse.drag) {
+            if (!mouse.pan) {
                 mouse.lastX = mouse.x;
                 mouse.lastY = mouse.y;
-                mouse.drag = true;
+                this.graphHandle.current.selected?
+                mouse.drag = true :
+                mouse.pan = true;
             } else {
                 panZoom.x += mouse.x - mouse.lastX;
                 panZoom.y += mouse.y - mouse.lastY;
                 mouse.lastX = mouse.x;
                 mouse.lastY = mouse.y;
             }
-        } else if (mouse.drag) {
+        } else if (mouse.pan) {
+            mouse.pan = false;
             mouse.drag = false;
         }
     }
 
     private mouseEventBoundsCalc(e: MouseEvent | WheelEvent): void {
         let bounds = this.canvas.getBoundingClientRect();
-        mouse.x = e.clientX - bounds.left;
-        mouse.y = e.clientY - bounds.top;
+        mouse.clientX = e.clientX;
+        mouse.clientY = e.clientY;
+        mouse.x = mouse.clientX - bounds.left;
+        mouse.y = mouse.clientY - bounds.top;
     }
-
 
     /* *******************************  Mouse Events ******************************* */
 
 
+    /* ------------------------------- Nodes Related ------------------------------- */
+
+    private drawAllNodes(): void {
+        this.graphHandle.nodes.forEach((node: INode ) => {
+            const out = this.checkIfNodeOutOfBounds(node);
+            if(!out){
+                this.drawNode(node);
+            }
+        });
+    }
+
+    private drawNode(node: INode) : void {
+        this.setStyle(node.style.default);
+        this.ctx.beginPath();
+        const nodePos = this.renderShape(node);
+        this.ctx.closePath();
+        this.setupNodeHoverAttr(node);
+        this.ctx.stroke();
+        this.ctx.fill();
+        if(node.display) this.writeNodeContent(node, nodePos);
+    }
+
+    private writeNodeContent(node: INode, nodePos: IPoint) : void {
+        this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
+        this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
+        this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
+        if(this.graphHandle.current.hovered === node) {
+            this.ctx.fillStyle = node.style.onHover.fontColor || DEFAULT_WHITE;
+        }
+        if(this.graphHandle.current.selected === node) {
+            this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
+        }
+        this.ctx.fillText(node.display?.text, nodePos.x, nodePos.y);
+    }
+
+    private setupNodeHoverAttr(node: INode): void {
+        if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
+            this.onHoverOps(node);
+        }
+        if(this.graphHandle.current.selected === node) {
+            this.setStyle(node.style.onSelect);
+        }
+    }
+
+    private onHoverOps(node: INode): void {
+        this.graphHandle.current.hovered = node;
+        this.operations.node.onHover(this.graphHandle.current.hovered.id)
+        this.setStyle(node.style.onHover);
+    }
+
+    private setStyle(style: IHoverAndSelectStyle) : void {
+        this.ctx.font = style?.fontStyle || DEFAULT_TEXT_STYLE;
+        this.ctx.lineWidth = style?.strokeWidth || DEFAULT_LINE_WIDTH;
+        this.ctx.strokeStyle = style?.strokeColor || DEFAULT_BLACK;
+        this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
+    }
+
+    private renderShape(node: INode): IPoint {
+        let pos =  {
+            x: node.x * panZoom.scale,
+            y: node.y * panZoom.scale
+        };
+        if(this.graphHandle.current.selected === node && mouse.drag) {
+            pos = this.getShapeDragAndDropPos(pos);
+            if(!mouse.button) {
+                mouse.drag = false;
+                this.graphHandle.current.selected = undefined;
+            }
+        }
+        node.shape.height?
+            (
+                this.ctx.rect(pos.x, pos.y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale),
+                pos = {x : pos.x + (node.shape.width * panZoom.scale/ 2), y: pos.y + (node.shape.height * panZoom.scale / 2)}
+            ) : this.ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI)
+        return pos;
+    }
+
+    private getShapeDragAndDropPos(pos: IPoint) : IPoint {
+        // @ts-ignore
+        let p = panZoom.toWorld(mouse.x, mouse.y);
+        pos = {x: p.x * panZoom.scale, y : p.y * panZoom.scale}
+        if(this.graphHandle.current.selected.shape.height) {
+            pos = {
+                x : pos.x - (this.graphHandle.current.selected.shape.width * panZoom.scale /2),
+                y: pos.y - (this.graphHandle.current.selected.shape.height  * panZoom.scale /2)
+            }
+        }
+        this.graphHandle.current.selected.x = pos.x / panZoom.scale;
+        this.graphHandle.current.selected.y = pos.y / panZoom.scale;
+        return pos
+    }
+
+    private checkIfNodeOutOfBounds(node: INode) : boolean {
+        const shape = this.getShapeBound(node.shape);
+        return (
+            (node.x + shape) * panZoom.scale + panZoom.x < 0 ||
+            (node.y + shape) * panZoom.scale + panZoom.y < 0 ||
+            (node.x - shape) * panZoom.scale + panZoom.x > this.canvas.width ||
+            (node.y - shape) * panZoom.scale + panZoom.y > this.canvas.height
+        );
+    }
+
+    private getShapeBound(shape: INodeShape): number {
+        return shape.height ? Math.max(shape.width, shape.height) : shape.width;
+    }
+
+    /* *******************************  Nodes Related ******************************* */
 
 
 }

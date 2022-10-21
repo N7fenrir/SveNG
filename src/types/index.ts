@@ -1,3 +1,6 @@
+const TEXT_ALIGN = ["left", "right", "center"] as const;
+const TEXT_BASELINE = ['top', 'hanging', 'middle', 'alphabetic', 'ideographic', 'bottom'] as const;
+
 interface ICanvasBackground {
     grid? : ICanvasGrid,
     dots? : ICanvasDots,
@@ -25,7 +28,10 @@ interface IMousePointer {
     wheel : number;
     lastX : number;
     lastY : number;
-    drag : boolean;
+    clientX : number;
+    clientY : number;
+    pan : boolean;
+    drag: boolean;
 }
 
 interface IPoint {
@@ -42,4 +48,69 @@ interface IPanZoomHandler {
     toWorld: (x: number, y: number, point: IPoint) => IPoint
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler}
+
+interface INodeShape {
+    width: number;
+    height?: number,
+}
+
+
+enum POINTERS {
+    GRAB = "grab",
+    POINTER = "pointer",
+    CROSS = "crosshair",
+    DEFAULT = "default",
+}
+
+interface IInteractedNodes {
+    selected: INode;
+    hovered: INode;
+}
+
+
+
+interface INode {
+    id: number | string;
+    x: number;
+    y:number;
+    shape: INodeShape;
+    style?: {
+        default: IHoverAndSelectStyle,
+        onHover?: IHoverAndSelectStyle,
+        onSelect?: IHoverAndSelectStyle
+    }
+    display?: TNodeDisplay,
+    image?: {
+        src: string;
+        altText: string;
+        resizeToFit: boolean
+    }
+}
+
+type TNodeDisplay = {
+    text: string;
+    textAlign?: typeof TEXT_ALIGN[number];
+    textBaseLine?: typeof TEXT_BASELINE[number];
+}
+
+
+interface IHoverAndSelectStyle {
+    fillColor: string,
+    strokeColor: string
+    strokeWidth: number;
+    fontStyle?: string;
+    fontColor?: string
+}
+
+interface ICanvasElementOperations {
+    node : IObjectOperations;
+}
+
+interface IObjectOperations {
+        onSelect?: (nodeID: string | number | undefined) => void,
+        onHover?: (nodeID: string | number | undefined) => void
+}
+
+
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, INodeShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
+export { POINTERS}

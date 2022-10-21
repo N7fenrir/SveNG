@@ -1,9 +1,11 @@
 const TOP_LEFT = {x: 0, y: 0};  // holds top left of canvas in world coords.
 const SCALE_RATE = 1.02; // Closer to 1 slower rate of change
-const GRID_STROKE_COLOR = "#000";
+const DEFAULT_BLACK = "#000";
+const DEFAULT_WHITE = "#000";
 const DEFAULT_SOLID = "#0099cc";
+const DEFAULT_LINE_WIDTH = 0;
+const DEFAULT_TEXT_STYLE = "16px sans-serif"
+const TEXT_ALIGN = "center";
+const TEXT_BASELINE = "middle";
 
-
-
-
-export {TOP_LEFT,SCALE_RATE, GRID_STROKE_COLOR, DEFAULT_SOLID}
+export {TOP_LEFT,SCALE_RATE, DEFAULT_BLACK, DEFAULT_WHITE, DEFAULT_SOLID, DEFAULT_LINE_WIDTH, DEFAULT_TEXT_STYLE, TEXT_ALIGN, TEXT_BASELINE}
