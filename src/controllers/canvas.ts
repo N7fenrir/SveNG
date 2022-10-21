@@ -3,7 +3,9 @@ import {
     DEFAULT_LINE_WIDTH,
     DEFAULT_SOLID,
     DEFAULT_TEXT_STYLE,
-    DEFAULT_WHITE, EDGE_ARROW_HEAD, EDGE_ARROW_LENGTH, EDGE_ARROW_RADIAN,
+    DEFAULT_WHITE,
+    EDGE_ARROW_HEAD,
+    EDGE_ARROW_RADIAN,
     SCALE_RATE,
     TEXT_ALIGN,
     TEXT_BASELINE,
@@ -20,7 +22,7 @@ import type {
     IPoint
 } from "../types";
 import Store from "./store";
-import {getIntersectionPoint} from "../utils";
+import { getIntersectionPoint } from "../utils";
 
 class CanvasController {
 
@@ -448,20 +450,21 @@ class CanvasController {
         let  {startX, startY, sinr, cosr} : Record<string, number> = this.getStartPoints(edge);
         let lineEndX, lineEndY;
 
+        edge.to.shape.height? [lineEndX, lineEndY] = this.calcLineCoords(edge.to) : [lineEndX, lineEndY] = [edge.to.x, edge.to.y];
         const [endX, endY] = getIntersectionPoint(
             startX,
             startY,
-            edge.to.x,
-            edge.to.y,
+            lineEndX,
+            lineEndY,
             edge.to.shape);
-        const edgeLineOffset = edge.shape.width * panZoom.scale * Math.cos(EDGE_ARROW_RADIAN);
+        const edgeLineOffset = edge.shape.width * Math.cos(EDGE_ARROW_RADIAN);
 
         lineEndX = endX - cosr * edgeLineOffset;
         lineEndY = endY - sinr * edgeLineOffset;
 
-        console.log(startX, startY, edge.to.x, edge.to.y);
-        this.drawArrow(200, 200,100, 100, edge.shape.width * panZoom.scale, edge.style.default.strokeColor);
+        this.drawArrow(startX * panZoom.scale, startY * panZoom.scale,lineEndX  * panZoom.scale, lineEndY  * panZoom.scale, edge.shape.width * panZoom.scale, edge.style.default.strokeColor);
     }
+
 
     private calcLineCoords(node: INode) : [number, number] {
         let X = node.x + node.shape.width / 2
@@ -478,7 +481,6 @@ class CanvasController {
     private drawArrow(fromX : number, fromY : number, toX : number, toY : number, arrowWidth : number, color : string){
         const angle = Math.atan2(toY-fromY,toX-fromX);
 
-        this.ctx.save();
         this.ctx.strokeStyle = color;
 
         //starting path of the arrow from the start square to the end square
@@ -488,8 +490,9 @@ class CanvasController {
         this.ctx.lineTo(toX, toY);
         this.ctx.lineWidth = arrowWidth;
         this.ctx.stroke();
+        this.ctx.closePath();
 
-        /*
+
         //starting a new path from the head of the arrow to one of the sides of
         //the point
         this.ctx.beginPath();
@@ -507,10 +510,10 @@ class CanvasController {
         this.ctx.lineTo(toX-EDGE_ARROW_HEAD*Math.cos(angle-EDGE_ARROW_RADIAN),
             toY-EDGE_ARROW_HEAD*Math.sin(angle-EDGE_ARROW_RADIAN));
              this.ctx.stroke();
-        this.ctx.restore();
-        */
-        //draws the paths created above
 
+        //draws the paths created above
+        this.ctx.closePath();
+        this.ctx.restore();
     }
 
 
