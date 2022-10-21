@@ -174,5 +174,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas nodes={nodes}  background={gridBackground} {onNodeSelect} {onNodeHover} />
+    <Canvas nodes={nodes}  background={dotsBackground} {onNodeSelect} {onNodeHover} />
 </div>
