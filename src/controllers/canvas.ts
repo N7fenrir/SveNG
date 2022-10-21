@@ -332,11 +332,7 @@ class CanvasController {
             (
                 this.ctx.rect(pos.x, pos.y, node.shape.width  * panZoom.scale, node.shape.height  * panZoom.scale),
                 pos = {x : pos.x + (node.shape.width * panZoom.scale/ 2), y: pos.y + (node.shape.height * panZoom.scale / 2)}
-            )
-            :
-            (
-                this.ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI)
-            )
+            ) : this.ctx.arc(pos.x, pos.y, node.shape.width * panZoom.scale, 0, 2 * Math.PI)
         return pos;
     }
 
@@ -354,7 +350,6 @@ class CanvasController {
         this.graphHandle.current.selected.y = pos.y / panZoom.scale;
         return pos
     }
-
 
     private checkIfNodeOutOfBounds(node: INode) : boolean {
         const shape = this.getShapeBound(node.shape);
