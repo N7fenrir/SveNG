@@ -165,8 +165,8 @@
     ]
     export let edges: IEdge[] = [{
         id: "e1",
-        from: nodes[1],
-        to: nodes[0],
+        from: nodes[0],
+        to: nodes[1],
         shape : {
             width: 15,
         },
@@ -196,7 +196,42 @@
             textAlign: "center",
             textBaseLine: "middle",
         }
-    }]
+    },
+        {
+            id: "e2",
+            from: nodes[2],
+            to: nodes[0],
+            shape : {
+                width: 15,
+            },
+            style: {
+                default: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 2,
+                    fontStyle: "16px sans-serif",
+                    fontColor: "white"
+                },
+                onHover: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 15,
+                    fontColor: "red"
+                },
+                onSelect: {
+                    fillColor: "#00cc99",
+                    strokeColor: "00cc99",
+                    strokeWidth: 5,
+                    fontColor: "black"
+                }
+            },
+            display: {
+                text: "1",
+                textAlign: "center",
+                textBaseLine: "middle",
+            }
+        }
+        ]
 
 
 </script>

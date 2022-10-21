@@ -462,9 +462,8 @@ class CanvasController {
         lineEndX = endX - cosr * edgeLineOffset;
         lineEndY = endY - sinr * edgeLineOffset;
 
-        this.drawArrow(startX * panZoom.scale, startY * panZoom.scale,lineEndX  * panZoom.scale, lineEndY  * panZoom.scale, edge.shape.width * panZoom.scale, edge.style.default.strokeColor);
+        this.drawArrow(startX * panZoom.scale, startY * panZoom.scale,lineEndX  * panZoom.scale , lineEndY  * panZoom.scale , edge.shape.width * panZoom.scale, edge.style.default.strokeColor);
     }
-
 
     private calcLineCoords(node: INode) : [number, number] {
         let X = node.x + node.shape.width / 2
@@ -473,9 +472,8 @@ class CanvasController {
             X = node.x + node.shape.width / 2
             Y =  node.y  + node.shape.height / 2
         }
-        return [X * panZoom.scale, Y * panZoom.scale]
+        return [X, Y]
     }
-
 
     // Thanks to: https://codepen.io/chanthy/pen/WxQoVG
     private drawArrow(fromX : number, fromY : number, toX : number, toY : number, arrowWidth : number, color : string){
@@ -516,97 +514,7 @@ class CanvasController {
         this.ctx.restore();
     }
 
-
     /* *******************************  Edges Related ******************************* */
-
-
-    /*
-
-    private shapePath(x: number, y: number, shape: IShape): void {
-        if (!shape.height) {
-            this.ctx.arc(x, y, shape.width, 0, Math.PI * 2);
-        } else if (shape.height) {
-            this.ctx.rect(
-                x - shape.width * 0.5,
-                y - shape.height * 0.5,
-                shape.width,
-                shape.height
-            );
-        }
-    };
-
-
-
-if(edge.to.shape.height) {
-            lineEndX += edge.to.shape.width / 2;
-            lineEndY +=  edge.to.shape.height / 2
-        }
-
-        this.setStyle(edge.style.default);
-
-        const midX = (startX + endX) * 0.5;
-        const midY = (startY + endY) * 0.5;
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(startX, startY);
-        this.ctx.lineTo(lineEndX, lineEndY);
-        this.ctx.moveTo(endX, endY);
-        this.ctx.lineTo(
-            endX - EDGE_ARROW_LENGTH * Math.cos(rad - EDGE_ARROW_RADIAN),
-            endY - EDGE_ARROW_LENGTH * Math.sin(rad - EDGE_ARROW_RADIAN)
-        );
-        this.ctx.lineTo(
-            endX - EDGE_ARROW_LENGTH * Math.cos(rad + EDGE_ARROW_RADIAN),
-            endY - EDGE_ARROW_LENGTH * Math.sin(rad + EDGE_ARROW_RADIAN)
-        );
-        this.ctx.lineTo(endX, endY);
-        this.ctx.closePath();
-
-        if (
-            this.ctx.isPointInPath(mouse.x, mouse.y) ||
-            this.ctx.isPointInStroke(mouse.x, mouse.y)
-        ) {
-            this.storeHandle.current.hoveredEdge = edge;
-        }
-
-
-        const selected = edge === this.storeHandle.current.selectedEdge;
-        const hovered = edge === this.storeHandle.current.hoveredEdge;
-
-        if (hovered) {
-            this.ctx.strokeStyle = edge.style.onHover.strokeColor;
-            this.ctx.fillStyle = edge.style.onHover.fillColor;
-        }
-        if(selected){
-            this.ctx.strokeStyle = edge.style.onSelect.strokeColor;
-            this.ctx.fillStyle = edge.style.onSelect.fillColor;
-        }
-        else {
-            this.ctx.strokeStyle = edge.style.default.strokeColor;
-            this.ctx.fillStyle = edge.style.default.fillColor;
-        }
-
-        this.ctx.stroke();
-        this.ctx.fill();
-
-        this.ctx.beginPath();
-        this.shapePath(midX, midY, edge.shape);
-
-        this.ctx.fillStyle = "";
-
-        this.ctx.fill();
-        this.ctx.stroke();
-
-        if(hovered) {
-            console.log("hovered", edge, selected)
-        }
-
-        this.ctx.font = DEFAULT_TEXT_STYLE;
-        this.ctx.textAlign = TEXT_ALIGN;
-        this.ctx.textBaseline = TEXT_BASELINE;
-        this.ctx.fillText(edge.display.text, midX, midY);
-
-     */
 
 }
 
