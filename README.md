@@ -7,6 +7,7 @@ A Svelte Node Store with CRUD options
 - [x] Background (default: Line Grid)
 - [x] Add Zoom
 - [x] Pan Canvas
+- [] TODO: minMax Zoom
 - [] TODO: Limited Canvas with MiniMap
 - [] TODO: Pointer change, onObject, Selected, default, Hovered etc
 
@@ -16,6 +17,7 @@ A Svelte Node Store with CRUD options
 - [x] solid background color
 - [x] solid background color with dotted or lined grid
 - [x] Background line color optional
+- [] TODO: fixed DOTS and LINE background
 - [] TODO: Think more
 
 ### Node:
