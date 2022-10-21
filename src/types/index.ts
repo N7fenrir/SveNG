@@ -49,7 +49,7 @@ interface IPanZoomHandler {
 }
 
 
-interface INodeShape {
+interface IShape {
     width: number;
     height?: number,
 }
@@ -63,8 +63,10 @@ enum POINTERS {
 }
 
 interface IInteractedNodes {
-    selected: INode;
-    hovered: INode;
+    selectedNode: INode;
+    hoveredNode: INode;
+    hoveredEdge: IEdge;
+    selectedEdge: IEdge;
 }
 
 
@@ -73,7 +75,7 @@ interface INode {
     id: number | string;
     x: number;
     y:number;
-    shape: INodeShape;
+    shape: IShape;
     style?: {
         default: IHoverAndSelectStyle,
         onHover?: IHoverAndSelectStyle,
@@ -85,6 +87,20 @@ interface INode {
         altText: string;
         resizeToFit: boolean
     }
+}
+
+
+interface IEdge {
+    id: number | string;
+    from:  INode;
+    to: INode;
+    shape? : IShape
+    style?: {
+        default: IHoverAndSelectStyle,
+        onHover?: IHoverAndSelectStyle,
+        onSelect?: IHoverAndSelectStyle
+    }
+    display?: TNodeDisplay,
 }
 
 type TNodeDisplay = {
@@ -112,5 +128,5 @@ interface IObjectOperations {
 }
 
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, INodeShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IEdge, IShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
 export { POINTERS}

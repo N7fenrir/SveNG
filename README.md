@@ -29,6 +29,7 @@ A Svelte Node Store with CRUD options
 - [x] CRUD based purely on given nodesList, let user manipulate his list
 - [x] Add Display functionality with custom Content
 - [x] Draggable Nodes
+- [] TODO: Image as node background (css?)
 
 ### Edge:
 

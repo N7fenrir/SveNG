@@ -3,7 +3,7 @@ import {
     DEFAULT_LINE_WIDTH,
     DEFAULT_SOLID,
     DEFAULT_TEXT_STYLE,
-    DEFAULT_WHITE,
+    DEFAULT_WHITE, EDGE_ARROW_HEAD, EDGE_ARROW_LENGTH, EDGE_ARROW_RADIAN,
     SCALE_RATE,
     TEXT_ALIGN,
     TEXT_BASELINE,
@@ -13,13 +13,14 @@ import {panZoom} from "./panZoom";
 import {mouse} from "./mouse";
 import type {
     ICanvasBackground,
-    ICanvasElementOperations,
+    ICanvasElementOperations, IEdge,
     IHoverAndSelectStyle,
     INode,
-    INodeShape,
+    IShape,
     IPoint
 } from "../types";
 import Store from "./store";
+import {getIntersectionPoint} from "../utils";
 
 class CanvasController {
 
@@ -27,14 +28,14 @@ class CanvasController {
     private readonly ctx: CanvasRenderingContext2D;
     private readonly background: ICanvasBackground = undefined;
     private readonly drawBackground: () => void;
-    private graphHandle: Store;
+    private storeHandle: Store;
     private operations!: ICanvasElementOperations;
 
     constructor(canvas: HTMLCanvasElement, background: ICanvasBackground) {
         this.canvas = canvas;
         this.background = background;
         this.ctx = canvas.getContext("2d");
-        this.graphHandle = new Store()
+        this.storeHandle = new Store()
         this.updateFrame = this.updateFrame.bind(this);
         this.drawBackground = this.setupBackgroundFunc();
     }
@@ -56,14 +57,14 @@ class CanvasController {
 
 
     private checkAndToggleSelectedNode() : void {
-        if(this.graphHandle.current.hovered) {
-            if(this.graphHandle.current.selected !== this.graphHandle.current.hovered) {
-                this.graphHandle.current.selected = this.graphHandle.current.hovered;
+        if(this.storeHandle.current.hoveredNode) {
+            if(this.storeHandle.current.selectedNode !== this.storeHandle.current.hoveredNode) {
+                this.storeHandle.current.selectedNode = this.storeHandle.current.hoveredNode;
             } else {
-                this.graphHandle.current.selected = undefined;
+                this.storeHandle.current.selectedNode = undefined;
             }
-            this.operations.node.onSelect(this.graphHandle.current.selected?
-                this.graphHandle.current.selected.id : undefined);
+            this.operations.node.onSelect(this.storeHandle.current.selectedNode?
+                this.storeHandle.current.selectedNode.id : undefined);
         }
     }
 
@@ -81,8 +82,12 @@ class CanvasController {
     }
 
     public setupInitialNodes(nodes: INode[]) : void {
-        this.graphHandle.nodes = nodes;
+        this.storeHandle.nodes = nodes;
     };
+
+    public setupInitialEdges(edges: IEdge[]) : void {
+        this.storeHandle.edges = edges;
+    }
 
     public setupOps(operations: ICanvasElementOperations): void {
         this.operations = operations;
@@ -181,10 +186,11 @@ class CanvasController {
         this.renderBackgroundAndPointer();
         this.ctx.translate(panZoom.x, panZoom.y);
         this.renderNodes();
+        this.renderEdges();
     }
 
     private resetCanvasTransformAndAlpha(): void {
-        this.graphHandle.current.hovered = undefined;
+        this.storeHandle.current.hoveredNode = undefined;
         this.ctx.setTransform(1, 0, 0, 1, 0, 0 );
         this.ctx.globalAlpha = 1;
     }
@@ -205,11 +211,13 @@ class CanvasController {
 
     private renderBackgroundAndPointer(): void{
         this.drawBackground();
-        // this.drawPointer()
     }
-
     private renderNodes() : void {
         this.drawAllNodes()
+    }
+
+    private renderEdges() : void {
+        this.drawAllEdges()
     }
 
     /* *******************************  Update Frame Events ******************************* */
@@ -233,7 +241,7 @@ class CanvasController {
             if (!mouse.pan) {
                 mouse.lastX = mouse.x;
                 mouse.lastY = mouse.y;
-                this.graphHandle.current.selected?
+                this.storeHandle.current.selectedNode?
                 mouse.drag = true :
                 mouse.pan = true;
             } else {
@@ -262,7 +270,7 @@ class CanvasController {
     /* ------------------------------- Nodes Related ------------------------------- */
 
     private drawAllNodes(): void {
-        this.graphHandle.nodes.forEach((node: INode ) => {
+        this.storeHandle.nodes.forEach((node: INode ) => {
             const out = this.checkIfNodeOutOfBounds(node);
             if(!out){
                 this.drawNode(node);
@@ -285,10 +293,10 @@ class CanvasController {
         this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
         this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
         this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
-        if(this.graphHandle.current.hovered === node) {
+        if(this.storeHandle.current.hoveredNode === node) {
             this.ctx.fillStyle = node.style.onHover.fontColor || DEFAULT_WHITE;
         }
-        if(this.graphHandle.current.selected === node) {
+        if(this.storeHandle.current.selectedNode === node) {
             this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
         }
         this.ctx.fillText(node.display?.text, nodePos.x, nodePos.y);
@@ -298,14 +306,14 @@ class CanvasController {
         if (this.ctx.isPointInPath(mouse.x, mouse.y)) {
             this.onHoverOps(node);
         }
-        if(this.graphHandle.current.selected === node) {
+        if(this.storeHandle.current.selectedNode === node) {
             this.setStyle(node.style.onSelect);
         }
     }
 
     private onHoverOps(node: INode): void {
-        this.graphHandle.current.hovered = node;
-        this.operations.node.onHover(this.graphHandle.current.hovered.id)
+        this.storeHandle.current.hoveredNode = node;
+        this.operations.node.onHover(this.storeHandle.current.hoveredNode.id)
         this.setStyle(node.style.onHover);
     }
 
@@ -321,11 +329,11 @@ class CanvasController {
             x: node.x * panZoom.scale,
             y: node.y * panZoom.scale
         };
-        if(this.graphHandle.current.selected === node && mouse.drag) {
+        if(this.storeHandle.current.selectedNode === node && mouse.drag) {
             pos = this.getShapeDragAndDropPos(pos);
             if(!mouse.button) {
                 mouse.drag = false;
-                this.graphHandle.current.selected = undefined;
+                this.storeHandle.current.selectedNode = undefined;
             }
         }
         node.shape.height?
@@ -340,14 +348,14 @@ class CanvasController {
         // @ts-ignore
         let p = panZoom.toWorld(mouse.x, mouse.y);
         pos = {x: p.x * panZoom.scale, y : p.y * panZoom.scale}
-        if(this.graphHandle.current.selected.shape.height) {
+        if(this.storeHandle.current.selectedNode.shape.height) {
             pos = {
-                x : pos.x - (this.graphHandle.current.selected.shape.width * panZoom.scale /2),
-                y: pos.y - (this.graphHandle.current.selected.shape.height  * panZoom.scale /2)
+                x : pos.x - (this.storeHandle.current.selectedNode.shape.width * panZoom.scale /2),
+                y: pos.y - (this.storeHandle.current.selectedNode.shape.height  * panZoom.scale /2)
             }
         }
-        this.graphHandle.current.selected.x = pos.x / panZoom.scale;
-        this.graphHandle.current.selected.y = pos.y / panZoom.scale;
+        this.storeHandle.current.selectedNode.x = pos.x / panZoom.scale;
+        this.storeHandle.current.selectedNode.y = pos.y / panZoom.scale;
         return pos
     }
 
@@ -361,12 +369,241 @@ class CanvasController {
         );
     }
 
-    private getShapeBound(shape: INodeShape): number {
+    private getShapeBound(shape: IShape): number {
         return shape.height ? Math.max(shape.width, shape.height) : shape.width;
     }
 
     /* *******************************  Nodes Related ******************************* */
 
+
+
+
+    /* ------------------------------- Edges Related ------------------------------- */
+
+
+    private drawAllEdges(): void {
+        this.ctx.globalCompositeOperation = "destination-over";
+        this.storeHandle.edges.forEach((edge: IEdge ) => {
+            const out = this.checkIfEdgeOutOfBounds(edge);
+            if(!out){
+                this.drawEdge(edge);
+            }
+        });
+    }
+
+    private getStartPoints(edge: IEdge): Record<string, number> {
+        const isMovingSourceNode =
+            mouse.drag && edge.from === this.storeHandle.current.selectedNode;
+
+        const isMovingTargetNode =
+            mouse.drag && edge.to === this.storeHandle.current.selectedNode;
+        let startX, startY;
+
+        const sourceX = isMovingSourceNode ? mouse.x : edge.from.x;
+        const sourceY = isMovingSourceNode ? mouse.y : edge.from.y;
+
+        const targetX = isMovingTargetNode ? mouse.x : edge.to.x;
+        const targetY = isMovingTargetNode ? mouse.y : edge.to.y;
+
+        const dx = targetX - sourceX;
+        const dy = targetY - sourceY;
+
+        const rad = Math.atan2(dy, dx);
+        const sinr = Math.sin(rad);
+        const cosr = Math.cos(rad);
+
+        if(edge.from.shape.height) {
+            startX = edge.from.x + edge.from.shape.width / 2
+            startY = edge.from.y + edge.from.shape.height / 2
+
+        } else {
+            startX = edge.from.x
+            startY = edge.from.y
+        }
+
+        return {startX , startY, sinr, cosr}
+    }
+
+    private checkIfEdgeOutOfBounds(edge: IEdge) : boolean {
+
+        const source = edge.from;
+        const target = edge.to;
+
+        const sourceX = source.x * panZoom.scale + panZoom.x;
+        const sourceY = source.y * panZoom.scale  + panZoom.y;
+        const targetX = target.x * panZoom.scale  + panZoom.x;
+        const targetY = target.y * panZoom.scale  + panZoom.y;
+
+        const r = this.getShapeBound(edge.shape);
+
+        return (
+            (sourceX < -r && targetX < -r) ||
+            (sourceY < -r && targetY < -r) ||
+            (sourceX > this.canvas.width + r && targetX > this.canvas.width + r) ||
+            (sourceY > this.canvas.height + r && targetY > this.canvas.height + r)
+        );
+    }
+
+    private drawEdge(edge: IEdge) : void {
+        let  {startX, startY, sinr, cosr} : Record<string, number> = this.getStartPoints(edge);
+        let lineEndX, lineEndY;
+
+        const [endX, endY] = getIntersectionPoint(
+            startX,
+            startY,
+            edge.to.x,
+            edge.to.y,
+            edge.to.shape);
+        const edgeLineOffset = edge.shape.width * panZoom.scale * Math.cos(EDGE_ARROW_RADIAN);
+
+        lineEndX = endX - cosr * edgeLineOffset;
+        lineEndY = endY - sinr * edgeLineOffset;
+
+        console.log(startX, startY, edge.to.x, edge.to.y);
+        this.drawArrow(200, 200,100, 100, edge.shape.width * panZoom.scale, edge.style.default.strokeColor);
+    }
+
+    private calcLineCoords(node: INode) : [number, number] {
+        let X = node.x + node.shape.width / 2
+        let Y = node.y + node.shape.height / 2
+        if(mouse.drag && this.storeHandle.current.selectedNode === node){
+            X = node.x + node.shape.width / 2
+            Y =  node.y  + node.shape.height / 2
+        }
+        return [X * panZoom.scale, Y * panZoom.scale]
+    }
+
+
+    // Thanks to: https://codepen.io/chanthy/pen/WxQoVG
+    private drawArrow(fromX : number, fromY : number, toX : number, toY : number, arrowWidth : number, color : string){
+        const angle = Math.atan2(toY-fromY,toX-fromX);
+
+        this.ctx.save();
+        this.ctx.strokeStyle = color;
+
+        //starting path of the arrow from the start square to the end square
+        //and drawing the stroke
+        this.ctx.beginPath();
+        this.ctx.moveTo(fromX, fromY);
+        this.ctx.lineTo(toX, toY);
+        this.ctx.lineWidth = arrowWidth;
+        this.ctx.stroke();
+
+        /*
+        //starting a new path from the head of the arrow to one of the sides of
+        //the point
+        this.ctx.beginPath();
+        this.ctx.moveTo(toX, toY);
+        this.ctx.lineTo(toX-EDGE_ARROW_HEAD*Math.cos(angle-EDGE_ARROW_RADIAN),
+            toY-EDGE_ARROW_HEAD*Math.sin(angle-EDGE_ARROW_RADIAN));
+
+        //path from the side point of the arrow, to the other side point
+        this.ctx.lineTo(toX-EDGE_ARROW_HEAD*Math.cos(angle+EDGE_ARROW_RADIAN),
+            toY-EDGE_ARROW_HEAD*Math.sin(angle+EDGE_ARROW_RADIAN));
+
+        //path from the side point back to the tip of the arrow, and then
+        //again to the opposite side point
+        this.ctx.lineTo(toX, toY);
+        this.ctx.lineTo(toX-EDGE_ARROW_HEAD*Math.cos(angle-EDGE_ARROW_RADIAN),
+            toY-EDGE_ARROW_HEAD*Math.sin(angle-EDGE_ARROW_RADIAN));
+             this.ctx.stroke();
+        this.ctx.restore();
+        */
+        //draws the paths created above
+
+    }
+
+
+    /* *******************************  Edges Related ******************************* */
+
+
+    /*
+
+    private shapePath(x: number, y: number, shape: IShape): void {
+        if (!shape.height) {
+            this.ctx.arc(x, y, shape.width, 0, Math.PI * 2);
+        } else if (shape.height) {
+            this.ctx.rect(
+                x - shape.width * 0.5,
+                y - shape.height * 0.5,
+                shape.width,
+                shape.height
+            );
+        }
+    };
+
+
+
+if(edge.to.shape.height) {
+            lineEndX += edge.to.shape.width / 2;
+            lineEndY +=  edge.to.shape.height / 2
+        }
+
+        this.setStyle(edge.style.default);
+
+        const midX = (startX + endX) * 0.5;
+        const midY = (startY + endY) * 0.5;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(startX, startY);
+        this.ctx.lineTo(lineEndX, lineEndY);
+        this.ctx.moveTo(endX, endY);
+        this.ctx.lineTo(
+            endX - EDGE_ARROW_LENGTH * Math.cos(rad - EDGE_ARROW_RADIAN),
+            endY - EDGE_ARROW_LENGTH * Math.sin(rad - EDGE_ARROW_RADIAN)
+        );
+        this.ctx.lineTo(
+            endX - EDGE_ARROW_LENGTH * Math.cos(rad + EDGE_ARROW_RADIAN),
+            endY - EDGE_ARROW_LENGTH * Math.sin(rad + EDGE_ARROW_RADIAN)
+        );
+        this.ctx.lineTo(endX, endY);
+        this.ctx.closePath();
+
+        if (
+            this.ctx.isPointInPath(mouse.x, mouse.y) ||
+            this.ctx.isPointInStroke(mouse.x, mouse.y)
+        ) {
+            this.storeHandle.current.hoveredEdge = edge;
+        }
+
+
+        const selected = edge === this.storeHandle.current.selectedEdge;
+        const hovered = edge === this.storeHandle.current.hoveredEdge;
+
+        if (hovered) {
+            this.ctx.strokeStyle = edge.style.onHover.strokeColor;
+            this.ctx.fillStyle = edge.style.onHover.fillColor;
+        }
+        if(selected){
+            this.ctx.strokeStyle = edge.style.onSelect.strokeColor;
+            this.ctx.fillStyle = edge.style.onSelect.fillColor;
+        }
+        else {
+            this.ctx.strokeStyle = edge.style.default.strokeColor;
+            this.ctx.fillStyle = edge.style.default.fillColor;
+        }
+
+        this.ctx.stroke();
+        this.ctx.fill();
+
+        this.ctx.beginPath();
+        this.shapePath(midX, midY, edge.shape);
+
+        this.ctx.fillStyle = "";
+
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        if(hovered) {
+            console.log("hovered", edge, selected)
+        }
+
+        this.ctx.font = DEFAULT_TEXT_STYLE;
+        this.ctx.textAlign = TEXT_ALIGN;
+        this.ctx.textBaseline = TEXT_BASELINE;
+        this.ctx.fillText(edge.display.text, midX, midY);
+
+     */
 
 }
 

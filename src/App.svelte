@@ -1,6 +1,6 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
-    import type {INode} from "./types";
+    import type {IEdge, INode} from "./types";
 
     export let width = "100vw";
     export let height = "100vh";
@@ -163,7 +163,40 @@
             }
             },
     ]
-
+    export let edges: IEdge[] = [{
+        id: "e1",
+        from: nodes[1],
+        to: nodes[0],
+        shape : {
+            width: 15,
+        },
+        style: {
+            default: {
+                fillColor: "#00cc99",
+                strokeColor: "00cc99",
+                strokeWidth: 2,
+                fontStyle: "16px sans-serif",
+                fontColor: "white"
+            },
+            onHover: {
+                fillColor: "#00cc99",
+                strokeColor: "00cc99",
+                strokeWidth: 15,
+                fontColor: "red"
+            },
+            onSelect: {
+                fillColor: "#00cc99",
+                strokeColor: "00cc99",
+                strokeWidth: 5,
+                fontColor: "black"
+            }
+        },
+        display: {
+            text: "1",
+            textAlign: "center",
+            textBaseLine: "middle",
+        }
+    }]
 
 
 </script>
@@ -174,5 +207,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas nodes={nodes}  background={dotsBackground} {onNodeSelect} {onNodeHover} />
+    <Canvas {nodes} {edges} background={dotsBackground} {onNodeSelect} {onNodeHover} />
 </div>
