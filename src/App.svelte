@@ -1,6 +1,6 @@
 <script lang="ts">
     import Canvas from "./components/Canvas.svelte";
-    import type {INode} from "./types";
+    import type {IEdge, INode} from "./types";
 
     export let width = "100vw";
     export let height = "100vh";
@@ -31,13 +31,15 @@
         }
     }
 
-    function onNodeSelect(nodeID: string | number | undefined ) {
+    function onObjectSelect(objectID: string | number | undefined ) {
+        // write what you want
+        console.log(objectID)
+    }
+
+    function onObjectHover(objectID: string) {
         // write what you want
     }
 
-    function onNodeHover(nodeID: string) {
-        // write what you want
-    }
 
     export let gridBackground = {
         grid : {
@@ -69,34 +71,39 @@
             shape: {
                 width: 25
             },
+            display: {
+                text: "1",
+                font :"Times New Roman",
+                textAlign: "center",
+                textBaseLine: "middle",
+            },
             style: {
                 default: {
                     fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    strokeColor: "black",
                     strokeWidth: 2,
-                    fontStyle: "16px sans-serif",
-                    fontColor: "white"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    fillColor: "blue",
+                    strokeColor: "pink",
                     strokeWidth: 15,
-                    fontColor: "red"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    fillColor: "red",
+                    strokeColor: "orange",
                     strokeWidth: 5,
-                    fontColor: "black"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 }
             },
-            display: {
-                text: "1",
-                textAlign: "center",
-                textBaseLine: "middle",
-            }
             },
-
         {
             id: 2,
             x: 200,
@@ -105,65 +112,78 @@
                 width: 75,
                 height: 35
             },
-            style: {
-                default:{
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 2
-                },
-                onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-
-                },
-                onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-
-                }
-            },
             display: {
                 text: "2",
+                font :"Times New Roman",
                 textAlign: "center",
                 textBaseLine: "middle",
-            }
-        },
-        {
-            id: 3,
-            x: 300,
-            y: 100,
-            shape: {
-                width: 75,
-                height: 35
             },
             style: {
-                default:{
+                default: {
                     fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 2
+                    strokeColor: "black",
+                    strokeWidth: 2,
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 15
-
+                    fillColor: "blue",
+                    strokeColor: "pink",
+                    strokeWidth: 15,
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-                },
+                    fillColor: "red",
+                    strokeColor: "orange",
+                    strokeWidth: 5,
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
+                }
             },
-            display: {
-                text: "3",
-                textAlign: "center",
-                textBaseLine: "middle",
-            }
-            },
+        }
     ]
+    export let edges: IEdge[] = [{
+        id: "e1",
+        from: nodes[0],
+        to: nodes[1],
+        shape : {
+            width: 15,
+        },
+        style: {
+            default: {
+                strokeColor: "pink",
+                textColor: "black",
+                textSize: "1rem",
+                textStyle: "sans-serif",
+            },
+            onHover: {
+                lineWidth: 18,
+                strokeColor: "blue",
+                textColor: "black",
+                textSize: "2rem",
+                textStyle: "sans-serif",
 
+            },
+            onSelect: {
+                lineWidth: 20,
+                strokeColor: "red",
+                textColor: "black",
+                textSize: "3rem",
+                textStyle: "sans-serif",
+            }
+        },
+        display: {
+            text: "1",
+            textAlign: "center",
+            textBaseLine: "middle",
+            font :"Times New Roman"
+        }
+    },
+        ]
 
 
 </script>
@@ -174,5 +194,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas nodes={nodes}  background={dotsBackground} {onNodeSelect} {onNodeHover} />
+    <Canvas {nodes} {edges} background={dotsBackground} {onObjectSelect} {onObjectHover} />
 </div>

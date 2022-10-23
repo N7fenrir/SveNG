@@ -29,12 +29,15 @@ A Svelte Node Store with CRUD options
 - [x] CRUD based purely on given nodesList, let user manipulate his list
 - [x] Add Display functionality with custom Content
 - [x] Draggable Nodes
+- [] TODO: Image as node background (css?)
 
 ### Edge:
 
-- [] TODO: Edges
-- [] TODO: Edge Styles
-- [] TODO: Pointer color change
+- [x] Edges
+- [x] Edge Styles
+- [x] Edge Hover and Select
+- [x] Pointer color change on hover and selection
+- [x] Edge Text Content
 
 
 ### OnConnect:

@@ -48,32 +48,23 @@ interface IPanZoomHandler {
     toWorld: (x: number, y: number, point: IPoint) => IPoint
 }
 
-
-interface INodeShape {
+interface IShape {
     width: number;
     height?: number,
 }
 
-
-enum POINTERS {
-    GRAB = "grab",
-    POINTER = "pointer",
-    CROSS = "crosshair",
-    DEFAULT = "default",
-}
-
 interface IInteractedNodes {
-    selected: INode;
-    hovered: INode;
+    selectedNode: INode;
+    hoveredNode: INode;
+    hoveredEdge: IEdge;
+    selectedEdge: IEdge;
 }
-
-
 
 interface INode {
     id: number | string;
     x: number;
     y:number;
-    shape: INodeShape;
+    shape: IShape;
     style?: {
         default: IHoverAndSelectStyle,
         onHover?: IHoverAndSelectStyle,
@@ -87,30 +78,51 @@ interface INode {
     }
 }
 
+interface IEdgeActionStyles {
+    strokeColor: string;
+    lineWidth?: number;
+    textColor?: string;
+    textSize?: string;
+    textStyle?: string;
+}
+
+interface IEdge {
+    id: number | string;
+    from:  INode;
+    to: INode;
+    shape? : IShape
+    style?: {
+        default: IEdgeActionStyles,
+        onHover?: IEdgeActionStyles,
+        onSelect?: IEdgeActionStyles
+    }
+    display?: TNodeDisplay,
+}
+
 type TNodeDisplay = {
     text: string;
+    font: string;
     textAlign?: typeof TEXT_ALIGN[number];
     textBaseLine?: typeof TEXT_BASELINE[number];
 }
-
 
 interface IHoverAndSelectStyle {
     fillColor: string,
     strokeColor: string
     strokeWidth: number;
-    fontStyle?: string;
-    fontColor?: string
-}
-
-interface ICanvasElementOperations {
-    node : IObjectOperations;
+    textColor?: string;
+    textSize?: string;
+    textStyle?: string;
 }
 
 interface IObjectOperations {
-        onSelect?: (nodeID: string | number | undefined) => void,
-        onHover?: (nodeID: string | number | undefined) => void
+    onObjectSelect?: (nodeID: string | number | undefined) => void,
+    onObjectHover?: (nodeID: string | number | undefined) => void
 }
 
-
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, INodeShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
-export { POINTERS}
+export type {ICanvasBackground, ICanvasGrid,
+    ICanvasDots, IMousePointer,
+    IPoint, IPanZoomHandler, INode, IEdge, IShape,
+    IInteractedNodes, IHoverAndSelectStyle,
+    TNodeDisplay, IEdgeActionStyles,
+    IObjectOperations}
