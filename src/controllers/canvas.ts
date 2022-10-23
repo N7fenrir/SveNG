@@ -70,6 +70,7 @@ class CanvasController {
         } else {
             this.storeHandle.current.selectedNode = undefined;
         }
+        this.operations.onObjectSelect(this.storeHandle.current.selectedNode ? this.storeHandle.current.selectedNode.id : undefined);
     }
 
     private checkAndToggleSelectedEdge() : void {
@@ -82,6 +83,7 @@ class CanvasController {
         } else {
             this.storeHandle.current.selectedEdge = undefined;
         }
+        this.operations.onObjectSelect(this.storeHandle.current.selectedEdge ? this.storeHandle.current.selectedEdge.id : undefined);
     }
 
     public mouseMoveEvent(e: MouseEvent) : void {

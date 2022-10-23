@@ -33,6 +33,7 @@
 
     function onObjectSelect(objectID: string | number | undefined ) {
         // write what you want
+        console.log(objectID)
     }
 
     function onObjectHover(objectID: string) {
