@@ -31,13 +31,14 @@
         }
     }
 
-    function onNodeSelect(nodeID: string | number | undefined ) {
+    function onObjectSelect(objectID: string | number | undefined ) {
         // write what you want
     }
 
-    function onNodeHover(nodeID: string) {
+    function onObjectHover(objectID: string) {
         // write what you want
     }
+
 
     export let gridBackground = {
         grid : {
@@ -72,20 +73,20 @@
             style: {
                 default: {
                     fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    strokeColor: "black",
                     strokeWidth: 2,
                     fontStyle: "16px sans-serif",
                     fontColor: "white"
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    fillColor: "blue",
+                    strokeColor: "pink",
                     strokeWidth: 15,
                     fontColor: "red"
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
+                    fillColor: "red",
+                    strokeColor: "orange",
                     strokeWidth: 5,
                     fontColor: "black"
                 }
@@ -106,22 +107,24 @@
                 height: 35
             },
             style: {
-                default:{
+                default: {
                     fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 2
+                    strokeColor: "black",
+                    strokeWidth: 2,
+                    fontStyle: "16px sans-serif",
+                    fontColor: "white"
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-
+                    fillColor: "blue",
+                    strokeColor: "pink",
+                    strokeWidth: 15,
+                    fontColor: "red"
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-
+                    fillColor: "red",
+                    strokeColor: "orange",
+                    strokeWidth: 5,
+                    fontColor: "black"
                 }
             },
             display: {
@@ -139,22 +142,25 @@
                 height: 35
             },
             style: {
-                default:{
+                default: {
                     fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 2
+                    strokeColor: "black",
+                    strokeWidth: 2,
+                    fontStyle: "16px sans-serif",
+                    fontColor: "white"
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 15
-
+                    fillColor: "blue",
+                    strokeColor: "pink",
+                    strokeWidth: 15,
+                    fontColor: "red"
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5
-                },
+                    fillColor: "red",
+                    strokeColor: "orange",
+                    strokeWidth: 5,
+                    fontColor: "black"
+                }
             },
             display: {
                 text: "3",
@@ -172,23 +178,16 @@
         },
         style: {
             default: {
-                fillColor: "#00cc99",
-                strokeColor: "00cc99",
-                strokeWidth: 2,
-                fontStyle: "16px sans-serif",
-                fontColor: "white"
+                strokeColor: "pink",
             },
             onHover: {
-                fillColor: "#00cc99",
-                strokeColor: "00cc99",
-                strokeWidth: 15,
-                fontColor: "red"
+                lineWidth: 18,
+                strokeColor: "blue",
+
             },
             onSelect: {
-                fillColor: "#00cc99",
-                strokeColor: "00cc99",
-                strokeWidth: 5,
-                fontColor: "black"
+                lineWidth: 20,
+                strokeColor: "red",
             }
         },
         display: {
@@ -206,23 +205,16 @@
             },
             style: {
                 default: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 2,
-                    fontStyle: "16px sans-serif",
-                    fontColor: "white"
+                    strokeColor: "pink",
                 },
                 onHover: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 15,
-                    fontColor: "red"
+                    lineWidth: 18,
+                    strokeColor: "blue",
+
                 },
                 onSelect: {
-                    fillColor: "#00cc99",
-                    strokeColor: "00cc99",
-                    strokeWidth: 5,
-                    fontColor: "black"
+                    lineWidth: 20,
+                    strokeColor: "red",
                 }
             },
             display: {
@@ -242,5 +234,5 @@
     width: {width};
     height: {height};
     ">
-    <Canvas {nodes} {edges} background={dotsBackground} {onNodeSelect} {onNodeHover} />
+    <Canvas {nodes} {edges} background={dotsBackground} {onObjectSelect} {onObjectHover} />
 </div>

@@ -89,6 +89,12 @@ interface INode {
     }
 }
 
+interface IEdgeActionStyles {
+    lineWidth?: number;
+    strokeColor: string;
+    fontStyle?: string;
+    fontColor?: string
+}
 
 interface IEdge {
     id: number | string;
@@ -96,9 +102,9 @@ interface IEdge {
     to: INode;
     shape? : IShape
     style?: {
-        default: IHoverAndSelectStyle,
-        onHover?: IHoverAndSelectStyle,
-        onSelect?: IHoverAndSelectStyle
+        default: IEdgeActionStyles,
+        onHover?: IEdgeActionStyles,
+        onSelect?: IEdgeActionStyles
     }
     display?: TNodeDisplay,
 }
@@ -118,15 +124,10 @@ interface IHoverAndSelectStyle {
     fontColor?: string
 }
 
-interface ICanvasElementOperations {
-    node : IObjectOperations;
-}
-
 interface IObjectOperations {
-        onSelect?: (nodeID: string | number | undefined) => void,
-        onHover?: (nodeID: string | number | undefined) => void
+    onObjectSelect?: (nodeID: string | number | undefined) => void,
+    onObjectHover?: (nodeID: string | number | undefined) => void
 }
 
-
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IEdge, IShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay,  ICanvasElementOperations}
+export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IEdge, IShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay, IEdgeActionStyles,  IObjectOperations}
 export { POINTERS}

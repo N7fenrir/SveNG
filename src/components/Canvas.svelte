@@ -6,23 +6,20 @@
     export let background;
     export let nodes: INode[];
     export let edges: IEdge[];
-    export let onNodeSelect: (nodeID: string | number | undefined) => void = () => {};
-    export let onNodeHover: (nodeID: string | number | undefined) => void = () => {};
+    export let onObjectSelect: (objectID: string | number | undefined) => void = () => {};
+    export let onObjectHover: (objectID: string | number | undefined) => void = () => {};
 
     let canvasContext = null;
     let canvasHelper;
 
-    const nodeOps = {
-        onSelect : onNodeSelect,
-        onHover : onNodeHover
-    }
+
 
     onMount(() => {
         if(canvasContext !== null) {
             canvasHelper = new CanvasController(canvasContext, background);
             canvasHelper.setupInitialNodes(nodes);
             canvasHelper.setupInitialEdges(edges);
-            canvasHelper.setupOps( {node: nodeOps })
+            canvasHelper.setupOps( {onObjectSelect, onObjectHover })
             canvasHelper.requestRedraw();
         }
     })
