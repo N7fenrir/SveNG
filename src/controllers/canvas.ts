@@ -1,8 +1,8 @@
 import {
+    ALL_TEXT_PADDING,
     DEFAULT_BLACK,
     DEFAULT_LINE_WIDTH,
     DEFAULT_SOLID,
-    DEFAULT_TEXT_STYLE,
     DEFAULT_WHITE,
     EDGE_ARROW_HEAD,
     EDGE_ARROW_RADIAN,
@@ -310,12 +310,15 @@ class CanvasController {
         this.ctx.globalCompositeOperation = "source-over"
         this.ctx.textAlign = node.display?.textAlign || TEXT_ALIGN;
         this.ctx.textBaseline = node.display?.textBaseLine || TEXT_BASELINE;
-        this.ctx.fillStyle = node.style.default.fontColor || DEFAULT_WHITE;
+        this.ctx.fillStyle = node.style.default.textColor || DEFAULT_WHITE;
+        this.ctx.font = `${node.style.default.textSize} ${node.display.font}`;
         if(this.storeHandle.current.hoveredNode === node) {
-            this.ctx.fillStyle = node.style.onHover.fontColor || DEFAULT_WHITE;
+            this.ctx.fillStyle = node.style.onHover.textColor || DEFAULT_WHITE;
+            this.ctx.font = `${node.style.onHover.textSize} ${node.display.font}`;
         }
         if(this.storeHandle.current.selectedNode === node) {
-            this.ctx.fillStyle = node.style.onSelect.fontColor || DEFAULT_WHITE;
+            this.ctx.fillStyle = node.style.onSelect.textColor || DEFAULT_WHITE;
+            this.ctx.font = `${node.style.onHover.textSize} ${node.display.font}`;
         }
         this.ctx.fillText(node.display?.text, nodePos.x, nodePos.y);
         this.ctx.restore();
@@ -337,7 +340,6 @@ class CanvasController {
     }
 
     private setStyle(style: IHoverAndSelectStyle) : void {
-        this.ctx.font = style?.fontStyle || DEFAULT_TEXT_STYLE;
         this.ctx.lineWidth = style?.strokeWidth || DEFAULT_LINE_WIDTH;
         this.ctx.strokeStyle = style?.strokeColor || DEFAULT_BLACK;
         this.ctx.fillStyle = style?.fillColor || DEFAULT_WHITE;
@@ -395,13 +397,13 @@ class CanvasController {
     /* *******************************  Nodes Related ******************************* */
 
 
-
-
     /* ------------------------------- Edges Related ------------------------------- */
 
 
     private drawAllEdges(): void {
         this.ctx.globalCompositeOperation = "destination-over";
+        this.ctx.textAlign = TEXT_ALIGN;
+        this.ctx.textBaseline = TEXT_BASELINE;
         this.storeHandle.edges.forEach((edge: IEdge ) => {
             const out = this.checkIfEdgeOutOfBounds(edge);
             if(!out){
@@ -504,6 +506,8 @@ class CanvasController {
         this.checkForEdgeAction(edge)
         this.ctx.closePath();
         this.ctx.stroke();
+        if(edge.display) this.writeEdgeContent(edge);
+        this.ctx.restore();
     }
 
     private calcLineCoords(node: INode) : [number, number] {
@@ -558,9 +562,91 @@ class CanvasController {
         this.setEdgeStyle(edge.style.onHover, edge.shape.width);
     }
 
+    private writeEdgeContent(edge: IEdge){
+        let p, pad;
+        this.ctx.fillStyle = edge.style.default.textColor || DEFAULT_WHITE;
+        this.ctx.font = `${edge.style.onHover.textSize} ${edge.display.font}`;
+        const pt1 = edge.from;
+        const pt2 = edge.to;
+        const dx = (pt2.x * panZoom.scale - pt1.x * panZoom.scale);
+        const dy = (pt2.y * panZoom.scale - pt1.y * panZoom.scale);
+        const displayText = this.measureText(edge.display.text, Math.sqrt(dx*dx+dy*dy));
+
+        p = pt1;
+        pad = 1/2;
+
+        if(this.storeHandle.current.hoveredEdge === edge) {
+            this.ctx.fillStyle = edge.style.onHover.textColor || DEFAULT_WHITE;
+            this.ctx.font = `${edge.style.onHover.textSize} ${edge.display.font}`;
+        }
+        if(this.storeHandle.current.selectedEdge === edge) {
+            this.ctx.fillStyle = edge.style.onSelect.textColor || DEFAULT_WHITE;
+            this.ctx.font = `${edge.style.onHover.textSize} ${edge.display.font}`;
+        }
+
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = "source-over"
+        this.ctx.translate(p.x * panZoom.scale +dx *pad ,p.y * panZoom.scale +dy *pad );
+        dx < 0 ? this.ctx.rotate(Math.atan2(dy,dx) - Math.PI) : this.ctx.rotate(Math.atan2(dy,dx));
+        this.ctx.fillText(displayText,0,0);
+        this.ctx.restore();
+    }
+
+    private measureText(text: string, len: number) : string {
+        const avail = len - 2 * ALL_TEXT_PADDING;
+        let toWrite = text
+        if (this.ctx.measureText && this.ctx.measureText(toWrite).width > avail){
+            while (toWrite && this.ctx.measureText(toWrite+"…").width > avail) toWrite = toWrite.slice(0,-1);
+            toWrite += "…";
+        }
+        return toWrite;
+    }
+
 
     /* *******************************  Edges Related ******************************* */
 
+
+    /*
+
+     let source = {x:  edge.from.x , y:  edge.from.y };
+        let target = {x:  edge.to.x , y:  edge.to.y };
+        let  p: IPoint, padding = 1, pad;
+
+        let dx = edge.to.x - edge.from.x;
+        let dy =  edge.to.y - edge.from.y;
+        let angle = Math.atan2(dy,dx);
+        const len = Math.sqrt(dx*dx+dy*dy);
+
+        const text = this.measureText(edge.display.text, len)
+
+
+
+        // Keep text upright
+        if (angle < -Math.PI/2 || angle > Math.PI/2){
+            p = source;
+            source = target;
+            target = p;
+            dx *= -1;
+            dy *= -1;
+            angle -= Math.PI;
+        }
+
+
+        if (this.ctx.textAlign =='center'){
+            p = {x:  edge.from.x , y:  edge.from.y };
+            pad = 1/2;
+        } else {
+            const left = this.ctx.textAlign ==='left';
+            p = left ? {x : edge.from.x, y: edge.from.y} : {x : edge.to.x, y: edge.to.y};
+            pad = padding / Math.sqrt(dx*dx+dy*dy) * (left ? 1 : -1);
+        }
+
+        this.ctx.save();
+        this.ctx.translate(p.x+dx*pad,p.y+dy*pad);
+        this.ctx.rotate(Math.atan2(dy,dx));
+        this.ctx.fillText(text,0,0);
+        this.ctx.restore();
+     */
 }
 
 

@@ -48,18 +48,9 @@ interface IPanZoomHandler {
     toWorld: (x: number, y: number, point: IPoint) => IPoint
 }
 
-
 interface IShape {
     width: number;
     height?: number,
-}
-
-
-enum POINTERS {
-    GRAB = "grab",
-    POINTER = "pointer",
-    CROSS = "crosshair",
-    DEFAULT = "default",
 }
 
 interface IInteractedNodes {
@@ -68,8 +59,6 @@ interface IInteractedNodes {
     hoveredEdge: IEdge;
     selectedEdge: IEdge;
 }
-
-
 
 interface INode {
     id: number | string;
@@ -90,10 +79,11 @@ interface INode {
 }
 
 interface IEdgeActionStyles {
-    lineWidth?: number;
     strokeColor: string;
-    fontStyle?: string;
-    fontColor?: string
+    lineWidth?: number;
+    textColor?: string;
+    textSize?: string;
+    textStyle?: string;
 }
 
 interface IEdge {
@@ -111,17 +101,18 @@ interface IEdge {
 
 type TNodeDisplay = {
     text: string;
+    font: string;
     textAlign?: typeof TEXT_ALIGN[number];
     textBaseLine?: typeof TEXT_BASELINE[number];
 }
-
 
 interface IHoverAndSelectStyle {
     fillColor: string,
     strokeColor: string
     strokeWidth: number;
-    fontStyle?: string;
-    fontColor?: string
+    textColor?: string;
+    textSize?: string;
+    textStyle?: string;
 }
 
 interface IObjectOperations {
@@ -129,5 +120,9 @@ interface IObjectOperations {
     onObjectHover?: (nodeID: string | number | undefined) => void
 }
 
-export type {ICanvasBackground, ICanvasGrid, ICanvasDots, IMousePointer, IPoint, IPanZoomHandler, INode, IEdge, IShape, IInteractedNodes, IHoverAndSelectStyle, TNodeDisplay, IEdgeActionStyles,  IObjectOperations}
-export { POINTERS}
+export type {ICanvasBackground, ICanvasGrid,
+    ICanvasDots, IMousePointer,
+    IPoint, IPanZoomHandler, INode, IEdge, IShape,
+    IInteractedNodes, IHoverAndSelectStyle,
+    TNodeDisplay, IEdgeActionStyles,
+    IObjectOperations}

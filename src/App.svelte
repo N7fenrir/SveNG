@@ -71,34 +71,39 @@
             shape: {
                 width: 25
             },
+            display: {
+                text: "1",
+                font :"Times New Roman",
+                textAlign: "center",
+                textBaseLine: "middle",
+            },
             style: {
                 default: {
                     fillColor: "#00cc99",
                     strokeColor: "black",
                     strokeWidth: 2,
-                    fontStyle: "16px sans-serif",
-                    fontColor: "white"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 },
                 onHover: {
                     fillColor: "blue",
                     strokeColor: "pink",
                     strokeWidth: 15,
-                    fontColor: "red"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 },
                 onSelect: {
                     fillColor: "red",
                     strokeColor: "orange",
                     strokeWidth: 5,
-                    fontColor: "black"
+                    textColor: "black",
+                    textSize: "16px",
+                    textStyle: "sans-serif",
                 }
             },
-            display: {
-                text: "1",
-                textAlign: "center",
-                textBaseLine: "middle",
-            }
             },
-
         {
             id: 2,
             x: 200,
@@ -107,68 +112,39 @@
                 width: 75,
                 height: 35
             },
-            style: {
-                default: {
-                    fillColor: "#00cc99",
-                    strokeColor: "black",
-                    strokeWidth: 2,
-                    fontStyle: "16px sans-serif",
-                    fontColor: "white"
-                },
-                onHover: {
-                    fillColor: "blue",
-                    strokeColor: "pink",
-                    strokeWidth: 15,
-                    fontColor: "red"
-                },
-                onSelect: {
-                    fillColor: "red",
-                    strokeColor: "orange",
-                    strokeWidth: 5,
-                    fontColor: "black"
-                }
-            },
             display: {
                 text: "2",
+                font :"Times New Roman",
                 textAlign: "center",
                 textBaseLine: "middle",
-            }
-        },
-        {
-            id: 3,
-            x: 300,
-            y: 100,
-            shape: {
-                width: 75,
-                height: 35
             },
             style: {
                 default: {
                     fillColor: "#00cc99",
                     strokeColor: "black",
                     strokeWidth: 2,
-                    fontStyle: "16px sans-serif",
-                    fontColor: "white"
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
                 },
                 onHover: {
                     fillColor: "blue",
                     strokeColor: "pink",
                     strokeWidth: 15,
-                    fontColor: "red"
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
                 },
                 onSelect: {
                     fillColor: "red",
                     strokeColor: "orange",
                     strokeWidth: 5,
-                    fontColor: "black"
+                    textColor: "black",
+                    textSize: "1rem",
+                    textStyle: "sans-serif",
                 }
             },
-            display: {
-                text: "3",
-                textAlign: "center",
-                textBaseLine: "middle",
-            }
-            },
+        }
     ]
     export let edges: IEdge[] = [{
         id: "e1",
@@ -180,50 +156,33 @@
         style: {
             default: {
                 strokeColor: "pink",
+                textColor: "black",
+                textSize: "1rem",
+                textStyle: "sans-serif",
             },
             onHover: {
                 lineWidth: 18,
                 strokeColor: "blue",
+                textColor: "black",
+                textSize: "2rem",
+                textStyle: "sans-serif",
 
             },
             onSelect: {
                 lineWidth: 20,
                 strokeColor: "red",
+                textColor: "black",
+                textSize: "3rem",
+                textStyle: "sans-serif",
             }
         },
         display: {
             text: "1",
             textAlign: "center",
             textBaseLine: "middle",
+            font :"Times New Roman"
         }
     },
-        {
-            id: "e2",
-            from: nodes[2],
-            to: nodes[0],
-            shape : {
-                width: 15,
-            },
-            style: {
-                default: {
-                    strokeColor: "pink",
-                },
-                onHover: {
-                    lineWidth: 18,
-                    strokeColor: "blue",
-
-                },
-                onSelect: {
-                    lineWidth: 20,
-                    strokeColor: "red",
-                }
-            },
-            display: {
-                text: "1",
-                textAlign: "center",
-                textBaseLine: "middle",
-            }
-        }
         ]
 
 
