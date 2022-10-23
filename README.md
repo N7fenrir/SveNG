@@ -37,6 +37,7 @@ A Svelte Node Store with CRUD options
 - [x] Edge Styles
 - [x] Edge Hover and Select
 - [x] Pointer color change on hover and selection
+- [x] Edge Text Content
 
 
 ### OnConnect:
