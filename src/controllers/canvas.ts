@@ -48,47 +48,41 @@ class CanvasController {
             this.mouseEventBoundsCalc(e);
             mouse.button = true
             this.checkAndToggleSelectedNode();
+            this.checkAndToggleSelectedEdge();
         }
     }
 
     public mouseUpEvent(e: MouseEvent) : void {
+        mouse.drag = false;
         if(mouse.button) {
             this.mouseEventBoundsCalc(e);
-            // this.nodeMouseUpFunction()
             mouse.button = false;
-            // this.callObjectFunc(this.storeHandle.current.selectedEdge)
-            // this.checkAndToggleSelectedEdge();
-        }
-    }
-
-    private nodeMouseUpFunction() :void {
-        if(this.storeHandle.current.selectedNode) {
-            this.operations.onObjectSelect(this.storeHandle.current.selectedNode.id);
         }
     }
 
     private checkAndToggleSelectedNode() : void {
         if(this.storeHandle.current.hoveredNode) {
             if(this.storeHandle.current.selectedNode !== this.storeHandle.current.hoveredNode) {
-                this.storeHandle.current.selectedNode = this.storeHandle.current.hoveredNode;
+                this.storeHandle.current.selectedNode = this.storeHandle.current.hoveredNode
+            } else {
+                this.storeHandle.current.selectedNode = undefined;
             }
         } else {
             this.storeHandle.current.selectedNode = undefined;
         }
     }
 
-
     private checkAndToggleSelectedEdge() : void {
         if(this.storeHandle.current.hoveredEdge) {
             if(this.storeHandle.current.selectedEdge !== this.storeHandle.current.hoveredEdge) {
-                this.storeHandle.current.selectedEdge = this.storeHandle.current.hoveredEdge;
+                this.storeHandle.current.selectedEdge = this.storeHandle.current.hoveredEdge
             } else {
                 this.storeHandle.current.selectedEdge = undefined;
             }
+        } else {
+            this.storeHandle.current.selectedEdge = undefined;
         }
     }
-
-
 
     public mouseMoveEvent(e: MouseEvent) : void {
         this.mouseEventBoundsCalc(e);
@@ -208,7 +202,7 @@ class CanvasController {
         this.drawBackground();
         this.ctx.translate(panZoom.x, panZoom.y);
         this.renderNodes();
-        // this.renderEdges();
+        this.renderEdges();
     }
 
     private resetCanvasTransformAndAlpha(): void {
@@ -504,7 +498,7 @@ class CanvasController {
     private drawEdge(edge: IEdge) : void {
         this.setEdgeStyle(edge.style.default, edge.shape.width);
         this.ctx.beginPath();
-        this.renderArrow(this.getStartEndPoints(edge),  edge);
+        this.renderArrow(this.getStartEndPoints(edge));
         this.checkForEdgeAction(edge)
         this.ctx.closePath();
         this.ctx.stroke();
@@ -522,7 +516,7 @@ class CanvasController {
 
     // TODO: try to fix this function
     // Thanks to: https://codepen.io/chanthy/pen/WxQoVG
-    private renderArrow(pos : Record<string, number>, edge: IEdge){
+    private renderArrow(pos : Record<string, number>){
         const {startX, startY, endX, endY} = pos;
         const angle = Math.atan2(endY-startY,endX-startX);
 
