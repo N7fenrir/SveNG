@@ -33,9 +33,10 @@ A Svelte Node Store with CRUD options
 
 ### Edge:
 
-- [] TODO: Edges
-- [] TODO: Edge Styles
-- [] TODO: Pointer color change
+- [x] Edges
+- [x] Edge Styles
+- [x] Edge Hover and Select
+- [x] Pointer color change on hover and selection
 
 
 ### OnConnect:
